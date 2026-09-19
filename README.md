@@ -107,8 +107,54 @@ During any active exercise session, **tap the "LIVE COACH" emerald badge** at th
 
 ---
 
-## ⚠️ Known Limitations
+---
+
+## ☁️ Step-by-Step Deployment Guide
+
+### Option 1: Vercel + GitHub (Recommended)
+1. **Push to a new GitHub repository:**
+   ```bash
+   git remote add origin https://github.com/<your-username>/calm-motion-yoga.git
+   git branch -M main
+   git push -u origin main
+   ```
+2. **Import into Vercel:**
+   - Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
+   - Click **"Add New..."** → **"Project"**.
+   - Select your repository (`calm-motion-yoga`) and click **"Import"**.
+   - Framework Preset will automatically detect **Vite**.
+   - Expand **"Environment Variables"** and add:
+     - `CLINIC_ADMIN_PASSCODE` = `CALM2026`
+     - `JWT_SECRET` = `calm-motion-jwt-secret-xyz`
+     - `MONGODB_URI` = *(optional, paste your Atlas URI or leave empty to use in-memory store)*
+   - Click **"Deploy"**. Future git pushes will automatically redeploy!
+
+### Option 2: Drag & Drop Fallback (Netlify Drop)
+If you prefer zero command-line deployment:
+1. Run `npm run build` locally to generate the production `dist` directory.
+2. Open [app.netlify.com/drop](https://app.netlify.com/drop) in your browser.
+3. Drag and drop the `dist/` folder directly into the browser window.
+4. Your PWA will be live on an HTTPS link in under 15 seconds!
+
+---
+
+## 🍃 MongoDB Atlas Setup Guide (Exact Clicks)
+If you want persistent cloud storage for the clinic dashboard:
+1. Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) and click **"Try Free"**.
+2. **Create Cluster:** Choose the **Shared Free (M0)** tier, select your closest cloud region, and click **"Create Deployment"**.
+3. **Create Database User:** Enter a Username (e.g. `calm_admin`) and a secure Password. Click **"Create Database User"**.
+4. **Network Access:** In the "Where would you like to connect from?" prompt, select **"Allow Access from Anywhere"** (`0.0.0.0/0`) so Vercel serverless functions can connect. Click **"Finish and Close"**.
+5. **Copy Connection String:** Click **"Connect"** → **"Drivers"** → Copy the connection string:
+   ```text
+   mongodb+srv://<username>:<password>@cluster0.xyz.mongodb.net/calm_motion?retryWrites=true&w=majority
+   ```
+6. **Add to Vercel:** Go to your Vercel Project Settings → **"Environment Variables"** → Add `MONGODB_URI` with this connection string. Click **"Redeploy"**.
+
+---
+
+## ⚠️ Known Limitations & Prototype Boundaries
 
 1. **Lighting & Distance**: On-device computer vision requires sufficient room light and phone placement approximately 2 meters away so the full body remains visible in frame.
 2. **Web Speech API Language Packs**: Text-to-speech for Hindi and Telugu depends on whether your operating system has downloaded the respective language voice pack. If absent, the app falls back gracefully to on-screen text cues with a clear notice.
 3. **NPU Hardware Counters**: Mobile browsers sandbox hardware access and do not expose raw NPU utilization counters to JavaScript; GPU acceleration is actively measured and verified.
+4. **Adjuvant Tool, Not Medical Diagnosis**: Calm Motion provides movement guidance and alignment checks. It is designed to assist licensed physical therapists and cannot provide medical diagnoses or replace clinical care.

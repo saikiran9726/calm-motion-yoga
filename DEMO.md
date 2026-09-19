@@ -1,57 +1,61 @@
 # Calm Motion — 3-Minute Hackathon Demo Script for Judges
 
-Use this script to deliver a calm, confident, and high-impact presentation at the hackathon.
+**Live Link:** `https://calm-motion-yoga.vercel.app`  
+**Clinic Portal:** `https://calm-motion-yoga.vercel.app/clinic` (Passcode: `CALM2026` • Clinic Code: `CALM01`)
 
 ---
 
-## ⏱️ The 3-Minute Presentation Walkthrough
+## ⏱️ The 3-Minute Judge Demo Script
 
-### 1. The Problem (0:00 – 0:30)
-> *"Over 80% of patients fail to complete physical therapy or maintain safe yoga practice at home because they don't know if their posture is correct, yet sending live video to the cloud violates patient privacy and requires expensive servers. Today, we're introducing **Calm Motion**: the first privacy-first, on-device motion coach that runs entirely in your mobile browser with zero cloud dependencies."*
+### 1. The Problem & Core Insight (0:00 – 0:30)
+> *"Over 80% of patients fail to complete physical therapy or maintain safe yoga practice at home because they cannot tell if their form is correct. Yet sending live camera video to the cloud is a medical privacy hazard and computationally expensive.  
+> **Calm Motion** solves this with an on-device Live Motion Coach that runs directly in the mobile browser. It evaluates joint angles in real time, provides debounced one-at-a-time voice guidance in English, Hindi, and Telugu, safeguards against pain, and syncs summary progress to their physical therapist—without a single video frame ever leaving the phone."*
 
 ---
 
-### 2. Live Demo in Airplane Mode (0:30 – 1:30)
-> *(Presenter holds up the phone, swipes down control center, and turns on **Airplane Mode**)*
+### 2. Live Motion Coach in Airplane Mode (0:30 – 1:30)
+> *(Presenter holds up phone or laptop, demonstrates Airplane Mode or normal connectivity)*
 >
-> 1. *"Notice the quiet badge at the top: **Works offline**. We are completely in Airplane Mode—no Wi-Fi, no mobile data."*
-> 2. Tap **"Start Session"** → Tap **"Begin Live Motion Coach"** → Tap **"I'm Ready"**.
-> 3. Watch the soothing **Ready → 3 → 2 → 1 → Start** countdown.
-> 4. *"The camera observes my movement. Notice the Soft Sage skeleton aligning to my joints."*
-> 5. *(Demonstrate a deliberate compensation: raise or drop one shoulder)*
-> 6. Hear the coach speak and see the debounced coaching banner appear:
->    > *"Lower your right shoulder slightly."*
-> 7. Notice the right shoulder joint pulse with a calm Soft Coral accent circle.
-> 8. Re-align the shoulder: the check badge switches to *"Spine aligned"* and the coach acknowledges: *"Good movement."*
+> 1. *"Notice the quiet badge at the top: **Works offline**. All models, fonts, and assets are bundled locally."*
+> 2. Tap **"Start Session"** → In the setup card, show the **Tracking Source** selector:
+>    - *"Judges: You can choose **Live Camera** or **Recorded Replay** if evaluating in a room without a camera setup."*
+> 3. Tap **"I'm Ready"** → Watch the serene **Ready → 3 → 2 → 1 → Start** countdown.
+> 4. *"The camera tracks body landmarks with a subtle Soft Sage skeleton. Notice the live Range of Motion (ROM) badge reading **88° (Peak: 94°)**."*
+> 5. Deliberately raise or drop the shoulder:
+>    - The right shoulder joint pulses gently in Soft Coral (`#E9A99A`).
+>    - The voice coach gently speaks: *"Lower your right shoulder slightly."*
+>    - Rule enforcement: Exactly **ONE** correction at a time, held for at least 1.5 seconds.
+> 6. Align the posture: The badge switches to *"Spine aligned"* and the coach acknowledges: *"Good movement."*
 
 ---
 
-### 3. Proof of On-Device Speed (1:30 – 2:00)
-> *(Presenter taps the **"LIVE COACH"** emerald badge at the top)*
+### 3. Clinical Safeguards: Pain-Stop Rule & PDF Export (1:30 – 2:15)
+> 1. Tap the **"Pain Check"** button:
+>    - *"During rehabilitation, pain is an immediate stop signal. If a patient reports pain of 5 or higher, our clinical safety rule halts the session immediately."*
+> 2. Demonstrate reporting level 5: The session stops gracefully, resting advice plays, and the report is safely recorded as pain-interrupted.
+> 3. Complete the exercise to reach the **Completion Sheet**:
+>    - Soft expanding checkmark (no loud gamification).
+>    - Reps: 10/10, Peak ROM: 94°, Form Quality: Excellent.
+> 4. Tap **"Download Session Report (PDF)"**:
+>    - A clean, vector-rendered clinical PDF is instantly generated and downloaded with zero cloud dependencies.
+
+---
+
+### 4. Clinic Supervision Portal (`/clinic`) & Live Polling (2:15 – 2:45)
+> *(Presenter opens the Clinic Portal on another tab or second device)*
 >
-> 1. *"Judges, how do we know this isn't sending video to a backend? Let's open our live hardware metrics panel."*
-> 2. Show the screen to the judges:
->    - **Frame Rate**: `29.8 FPS`
->    - **Inference Time**: `22 ms / frame`
->    - **Hardware Delegate**: `GPU (WebGL)`
->    - **Network State**: `Offline (Airplane Mode)`
->    - **Battery & Memory**: Real-time readings
-> 3. *"Everything is running right here on the phone's GPU in volatile memory. No video ever leaves this device."*
+> 1. Navigate to `/clinic` and enter passcode **`CALM2026`** (Clinic Code: `CALM01`).
+> 2. Show the patient cohort: Ananya, Arjun, Priya, Rahul.
+> 3. Notice the **Live Connected (5s Polling)** badge:
+>    - *"Within 5 to 10 seconds of a session ending on the phone, the clinic portal receives the summary numbers without duplicates (enforced by unique idempotent report IDs)."*
+> 4. Click **"Adjust Movement Program"**:
+>    - Change the allowable pain threshold and target ROM, then click **"Save & Sync"**.
+>    - The new prescription reaches the patient's mobile app immediately on their next session!
 
 ---
 
-### 4. Completion, Clinical Safety & Laptop Sync (2:00 – 2:40)
-> 1. Tap **"Next Movement"** to trigger session completion.
-> 2. Show the calming expanding checkmark animation (no loud confetti).
-> 3. *"We see 10/10 reps completed, Form Quality: 'Excellent', and an encouraging recovery summary."*
-> 4. Tap **"Generate Clinical Report"** → An offline clinical PDF is generated instantly in the browser.
-> 5. Show how the report syncs over local Wi-Fi or via QR code to the therapist's clinic laptop bridge:
->    - The clinic laptop dashboard immediately updates with the patient's Range of Motion (ROM), reps, and compensations.
-
----
-
-### 5. Why On-Device & Privacy Matters (2:40 – 3:00)
-> *"Healthcare at home only works when patients trust it. By running MediaPipe and biomechanical intelligence entirely on the client, Calm Motion eliminates cloud infrastructure costs, operates in rural areas with zero internet, and delivers absolute medical privacy."*
+### 5. Why Privacy & Calm Design Wins (2:45 – 3:00)
+> *"Healthcare technology should feel calming, trustworthy, and respectful. By running 100% on-device edge AI in the browser, Calm Motion eliminates server video processing costs, protects patient dignity, and operates even in remote clinics with zero internet."*
 
 ---
 
@@ -59,28 +63,28 @@ Use this script to deliver a calm, confident, and high-impact presentation at th
 
 ### Q1: *"Is this a medical device, and does it provide diagnostic claims?"*
 **Answer:**
-> *"No. Calm Motion is designed strictly for **movement guidance and posture tracking**, not medical diagnosis. We enforce a prominent non-diagnostic disclaimer across all clinical views: 'This app gives movement guidance and is not a medical diagnosis. Stop if you feel sharp pain.' Furthermore, if a user reports pain of 7 or above or sharp discomfort, our built-in safety rules immediately halt the session and advise resting and contacting their licensed physiotherapist."*
+> *"No. Calm Motion is an adjuvant rehabilitation adherence and movement guidance tool designed to assist licensed physical therapists. We enforce clear non-diagnostic disclaimers across the app: 'This app gives movement guidance and is not a medical diagnosis.' If acute pain or sharp discomfort is detected, our built-in safety rules immediately halt movement."*
 
 ---
 
-### Q2: *"Where does the video stream go, and how is patient privacy protected?"*
+### Q2: *"Where do the camera video and skeleton images go? How is HIPAA/privacy protected?"*
 **Answer:**
-> *"Nowhere. Video frames are captured directly into an HTML5 VideoElement in browser memory, passed directly to the WebAssembly/GPU MediaPipe pipeline, and discarded immediately after joint extraction. We store **only summary metrics** (e.g. rep counts, peak ROM angles, form score percentages) in local IndexedDB storage. Video frames and raw camera images are never stored, saved, or transmitted."*
+> *"Nowhere. Video frames are captured directly into an HTML5 VideoElement in browser memory, evaluated on the local GPU, and immediately discarded after landmark extraction. Zero photos or video streams are stored or uploaded. Only clinical summary numbers (reps completed, peak ROM in degrees, pain rating) are stored in local IndexedDB and synced to the clinic portal."*
 
 ---
 
-### Q3: *"Does the app truly function with zero internet connection?"*
+### Q3: *"Does the app truly function with zero internet connection in Airplane Mode?"*
 **Answer:**
-> *"Yes, 100%. Calm Motion is an advanced Progressive Web App. On first visit, the service worker precaches all code, self-hosted Manrope fonts, offline SVG graphics, and the 5.7 MB pose landmarker model. You can turn on Airplane Mode, restart the phone, launch Calm Motion from the home screen icon, and conduct full workouts without a single network packet."*
+> *"Yes, 100%. Calm Motion is a Progressive Web App (PWA). All code, Manrope fonts, offline SVGs, and audio engines are precached. If you finish a workout in airplane mode, our IndexedDB offline outbox holds the session report and automatically flushes it to the clinic backend when reconnected."*
 
 ---
 
-### Q4: *"How do you handle different body proportions, heights, and camera angles?"*
+### Q4: *"How does the app handle different languages and diverse patient populations?"*
 **Answer:**
-> *"Our geometry engine normalizes all spatial measurements relative to body size. Distances are calculated as ratios of torso height (shoulder-to-hip distance) rather than fixed pixel dimensions. Additionally, our pre-session card provides inline visual guidance ensuring the phone is propped ~2 meters away with full body visibility."*
+> *"We built full trilingual support for English, Hindi (हिन्दी), and Telugu (తెలుగు) covering both UI copy and the calibrated Voice Coach. The app uses the device's local speech synthesis engine with culturally sensitive, calming coaching cadences."*
 
 ---
 
-### Q5: *"How does the physiotherapist interact with the patient without cloud storage?"*
+### Q5: *"How do you test this if a judge doesn't have a camera or is on a restricted device?"*
 **Answer:**
-> *"Calm Motion supports two privacy-preserving offline channels: peer-to-peer QR code scanning and local network HTTP/WebSocket synchronization. When the patient visits the clinic or connects to the clinic Wi-Fi, their summary report syncs directly to the therapist's laptop dashboard without ever touching external cloud servers."*
+> *"We built an explicit judge-friendly 'Recorded Replay' mode right into the session setup screen. Evaluators can experience the full skeleton overlay, real-time ROM angle updates, debounced voice feedback, and completion reports without needing a webcam."*
