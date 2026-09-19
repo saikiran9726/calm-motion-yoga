@@ -1,0 +1,108 @@
+{
+  "exerciseId": "warrior-2",
+  "name": "Warrior II",
+  "targetReps": 10,
+  "fps": 30,
+  "frames": [
+    {
+      "frameIndex": 0,
+      "rep": 8,
+      "state": "tracking",
+      "feedback": { "type": "positive", "message": "Good movement", "joint": null, "checks": { "spine": true, "knee": true } },
+      "keypoints": [
+        { "name": "nose", "x": 0.50, "y": 0.20, "score": 0.95 },
+        { "name": "left_eye", "x": 0.49, "y": 0.19, "score": 0.94 },
+        { "name": "right_eye", "x": 0.51, "y": 0.19, "score": 0.94 },
+        { "name": "left_ear", "x": 0.47, "y": 0.20, "score": 0.91 },
+        { "name": "right_ear", "x": 0.53, "y": 0.20, "score": 0.91 },
+        { "name": "left_shoulder", "x": 0.40, "y": 0.28, "score": 0.96 },
+        { "name": "right_shoulder", "x": 0.60, "y": 0.28, "score": 0.96 },
+        { "name": "left_elbow", "x": 0.28, "y": 0.28, "score": 0.92 },
+        { "name": "right_elbow", "x": 0.72, "y": 0.28, "score": 0.93 },
+        { "name": "left_wrist", "x": 0.16, "y": 0.28, "score": 0.90 },
+        { "name": "right_wrist", "x": 0.84, "y": 0.28, "score": 0.91 },
+        { "name": "left_hip", "x": 0.45, "y": 0.50, "score": 0.95 },
+        { "name": "right_hip", "x": 0.55, "y": 0.50, "score": 0.95 },
+        { "name": "left_knee", "x": 0.35, "y": 0.68, "score": 0.94 },
+        { "name": "right_knee", "x": 0.68, "y": 0.62, "score": 0.95 },
+        { "name": "left_ankle", "x": 0.28, "y": 0.86, "score": 0.93 },
+        { "name": "right_ankle", "x": 0.68, "y": 0.86, "score": 0.94 }
+      ]
+    },
+    {
+      "frameIndex": 15,
+      "rep": 8,
+      "state": "tracking",
+      "feedback": { "type": "correction", "message": "Lower your right shoulder slightly.", "joint": "right_shoulder", "checks": { "spine": true, "knee": true } },
+      "keypoints": [
+        { "name": "nose", "x": 0.50, "y": 0.20, "score": 0.95 },
+        { "name": "left_eye", "x": 0.49, "y": 0.19, "score": 0.94 },
+        { "name": "right_eye", "x": 0.51, "y": 0.19, "score": 0.94 },
+        { "name": "left_ear", "x": 0.47, "y": 0.20, "score": 0.91 },
+        { "name": "right_ear", "x": 0.53, "y": 0.20, "score": 0.91 },
+        { "name": "left_shoulder", "x": 0.40, "y": 0.28, "score": 0.96 },
+        { "name": "right_shoulder", "x": 0.60, "y": 0.24, "score": 0.96 },
+        { "name": "left_elbow", "x": 0.28, "y": 0.28, "score": 0.92 },
+        { "name": "right_elbow", "x": 0.72, "y": 0.24, "score": 0.93 },
+        { "name": "left_wrist", "x": 0.16, "y": 0.28, "score": 0.90 },
+        { "name": "right_wrist", "x": 0.84, "y": 0.24, "score": 0.91 },
+        { "name": "left_hip", "x": 0.45, "y": 0.50, "score": 0.95 },
+        { "name": "right_hip", "x": 0.55, "y": 0.50, "score": 0.95 },
+        { "name": "left_knee", "x": 0.35, "y": 0.68, "score": 0.94 },
+        { "name": "right_knee", "x": 0.68, "y": 0.62, "score": 0.95 },
+        { "name": "left_ankle", "x": 0.28, "y": 0.86, "score": 0.93 },
+        { "name": "right_ankle", "x": 0.68, "y": 0.86, "score": 0.94 }
+      ]
+    },
+    {
+      "frameIndex": 35,
+      "rep": 9,
+      "state": "tracking",
+      "feedback": { "type": "positive", "message": "Good alignment", "joint": null, "checks": { "spine": true, "knee": true } },
+      "keypoints": [
+        { "name": "nose", "x": 0.50, "y": 0.20, "score": 0.95 },
+        { "name": "left_eye", "x": 0.49, "y": 0.19, "score": 0.94 },
+        { "name": "right_eye", "x": 0.51, "y": 0.19, "score": 0.94 },
+        { "name": "left_ear", "x": 0.47, "y": 0.20, "score": 0.91 },
+        { "name": "right_ear", "x": 0.53, "y": 0.20, "score": 0.91 },
+        { "name": "left_shoulder", "x": 0.40, "y": 0.28, "score": 0.96 },
+        { "name": "right_shoulder", "x": 0.60, "y": 0.28, "score": 0.96 },
+        { "name": "left_elbow", "x": 0.28, "y": 0.28, "score": 0.92 },
+        { "name": "right_elbow", "x": 0.72, "y": 0.28, "score": 0.93 },
+        { "name": "left_wrist", "x": 0.16, "y": 0.28, "score": 0.90 },
+        { "name": "right_wrist", "x": 0.84, "y": 0.28, "score": 0.91 },
+        { "name": "left_hip", "x": 0.45, "y": 0.50, "score": 0.95 },
+        { "name": "right_hip", "x": 0.55, "y": 0.50, "score": 0.95 },
+        { "name": "left_knee", "x": 0.35, "y": 0.68, "score": 0.94 },
+        { "name": "right_knee", "x": 0.68, "y": 0.62, "score": 0.95 },
+        { "name": "left_ankle", "x": 0.28, "y": 0.86, "score": 0.93 },
+        { "name": "right_ankle", "x": 0.68, "y": 0.86, "score": 0.94 }
+      ]
+    },
+    {
+      "frameIndex": 50,
+      "rep": 10,
+      "state": "tracking",
+      "feedback": { "type": "positive", "message": "Exercise completed", "joint": null, "checks": { "spine": true, "knee": true } },
+      "keypoints": [
+        { "name": "nose", "x": 0.50, "y": 0.20, "score": 0.95 },
+        { "name": "left_eye", "x": 0.49, "y": 0.19, "score": 0.94 },
+        { "name": "right_eye", "x": 0.51, "y": 0.19, "score": 0.94 },
+        { "name": "left_ear", "x": 0.47, "y": 0.20, "score": 0.91 },
+        { "name": "right_ear", "x": 0.53, "y": 0.20, "score": 0.91 },
+        { "name": "left_shoulder", "x": 0.40, "y": 0.28, "score": 0.96 },
+        { "name": "right_shoulder", "x": 0.60, "y": 0.28, "score": 0.96 },
+        { "name": "left_elbow", "x": 0.28, "y": 0.28, "score": 0.92 },
+        { "name": "right_elbow", "x": 0.72, "y": 0.28, "score": 0.93 },
+        { "name": "left_wrist", "x": 0.16, "y": 0.28, "score": 0.90 },
+        { "name": "right_wrist", "x": 0.84, "y": 0.28, "score": 0.91 },
+        { "name": "left_hip", "x": 0.45, "y": 0.50, "score": 0.95 },
+        { "name": "right_hip", "x": 0.55, "y": 0.50, "score": 0.95 },
+        { "name": "left_knee", "x": 0.35, "y": 0.68, "score": 0.94 },
+        { "name": "right_knee", "x": 0.68, "y": 0.62, "score": 0.95 },
+        { "name": "left_ankle", "x": 0.28, "y": 0.86, "score": 0.93 },
+        { "name": "right_ankle", "x": 0.68, "y": 0.86, "score": 0.94 }
+      ]
+    }
+  ]
+}

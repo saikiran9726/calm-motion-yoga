@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "home": "होम",
+    "explore": "अभ्यास",
+    "progress": "प्रगति",
+    "you": "आप"
+  },
+  "home": {
+    "greeting": "शुभ प्रभात",
+    "howAreYou": "आज आपका शरीर कैसा महसूस कर रहा है?",
+    "feeling_great": "उत्कृष्ट",
+    "feeling_okay": "ठीक",
+    "feeling_sore": "दर्द है",
+    "todaySession": "आज का सत्र",
+    "sessionTitle": "मॉर्निंग मोबिलिटी",
+    "sessionMeta": "12 मिनट • 6 अभ्यास",
+    "startSession": "सत्र शुरू करें",
+    "yourProgress": "आपकी प्रगति",
+    "consistency": "साप्ताहिक नियमितता",
+    "days": {
+      "mon": "सोम",
+      "tue": "मंगल",
+      "wed": "बुध",
+      "thu": "गुरु",
+      "fri": "शुक्र",
+      "sat": "शनि",
+      "sun": "रवि"
+    }
+  },
+  "explore": {
+    "title": "अभ्यास अन्वेषण",
+    "subtitle": "सचेत गति, संरचित क्लिनिकल रिकवरी और प्रवाह",
+    "categories": {
+      "yoga": "योग",
+      "physio": "फिजियोथेरेपी",
+      "mobility": "गतिशीलता",
+      "breathing": "प्राणायाम",
+      "strength": "ताकत",
+      "recovery": "रिकवरी"
+    }
+  },
+  "progress": {
+    "title": "आपकी यात्रा",
+    "consistency": "साप्ताहिक नियमितता",
+    "completedSessions": "सत्र",
+    "exercisesDone": "व्यायाम",
+    "streak": "सर्वश्रेष्ठ स्ट्रीक",
+    "movementImprovement": "गति में सुधार",
+    "shoulderMobility": "कंधे की गतिशीलता",
+    "week1": "सप्ताह 1",
+    "week2": "सप्ताह 2",
+    "week3": "सप्ताह 3"
+  },
+  "profile": {
+    "title": "आप",
+    "goals": "लक्ष्य और फोकस",
+    "programs": "सक्रिय कार्यक्रम",
+    "preferences": "प्राथमिकताएं",
+    "language": "भाषा",
+    "cameraPermissions": "कैमरा और गोपनीयता",
+    "cameraPrivacyDesc": "केवल डिवाइस पर प्रोसेस होता है। कोई वीडियो फ़ोन से बाहर नहीं जाता।",
+    "therapist": "जुड़े फिजियोथेरेपिस्ट",
+    "drAnita": "डॉ. अनीता देसाई, पीटी"
+  },
+  "therapist": {
+    "badge": "क्लिनिकल थेरेपिस्ट पोर्टल",
+    "greeting": "शुभ प्रभात, डॉ. अनीता",
+    "activePatients": "12 सक्रिय मरीज़",
+    "onTrack": "सही ट्रैक पर",
+    "missed": "छूटे हुए सत्र",
+    "needsReview": "समीक्षा की आवश्यकता",
+    "recoveryProgress": "रिकवरी प्रगति",
+    "painTrend": "दर्द का रुझान",
+    "adjustProgram": "कार्यक्रम समायोजित करें"
+  },
+  "common": {
+    "continue": "जारी रखें",
+    "retry": "पुनः प्रयास करें",
+    "close": "बंद करें",
+    "back": "वापस",
+    "painToday": "आज दर्द कैसा है?",
+    "noPain": "कोई दर्द नहीं",
+    "mildPain": "हल्का",
+    "moderatePain": "मध्यम",
+    "severePain": "गंभीर"
+  }
+}

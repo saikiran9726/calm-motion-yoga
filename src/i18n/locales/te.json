@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "home": "హోమ్",
+    "explore": "అభ్యాసాలు",
+    "progress": "పురోగతి",
+    "you": "మీరు"
+  },
+  "home": {
+    "greeting": "శుభోదయం",
+    "howAreYou": "ఈ రోజు మీ శరీరం ఎలా అనిపిస్తోంది?",
+    "feeling_great": "చాలా బాగుంది",
+    "feeling_okay": "బాగానే ఉంది",
+    "feeling_sore": "నొప్పులు ఉన్నాయి",
+    "todaySession": "నేటి సెషన్",
+    "sessionTitle": "మార్నింగ్ మొబిలిటీ",
+    "sessionMeta": "12 నిమిషాలు • 6 వ్యాయామాలు",
+    "startSession": "సెషన్ ప్రారంభించండి",
+    "yourProgress": "మీ పురోగతి",
+    "consistency": "వారపు స్థిరత్వం",
+    "days": {
+      "mon": "సోమ",
+      "tue": "మంగళ",
+      "wed": "బుధ",
+      "thu": "గురు",
+      "fri": "శుక్ర",
+      "sat": "శని",
+      "sun": "ఆది"
+    }
+  },
+  "explore": {
+    "title": "అభ్యాసాల అన్వేషణ",
+    "subtitle": "శ్రద్ధాపూర్వక కదలిక, నిర్మాణాత్మక క్లినికల్ రికవరీ",
+    "categories": {
+      "yoga": "యోగా",
+      "physio": "ఫిజియోథెరపీ",
+      "mobility": "మొబిలిటీ",
+      "breathing": "ప్రాణాయామం",
+      "strength": "శక్తి",
+      "recovery": "రికవరీ"
+    }
+  },
+  "progress": {
+    "title": "మీ ప్రయాణం",
+    "consistency": "వారపు స్థిరత్వం",
+    "completedSessions": "సెషన్లు",
+    "exercisesDone": "వ్యాయామాలు",
+    "streak": "ఉత్తమ స్ట్రీక్",
+    "movementImprovement": "కదలికలో అభివృద్ధి",
+    "shoulderMobility": "భుజం కదలిక",
+    "week1": "వారం 1",
+    "week2": "వారం 2",
+    "week3": "వారం 3"
+  },
+  "profile": {
+    "title": "మీరు",
+    "goals": "లక్ష్యాలు & దృష్టి",
+    "programs": "క్రియాశీల కార్యక్రమాలు",
+    "preferences": "ప్రాధాన్యతలు",
+    "language": "భాష",
+    "cameraPermissions": "కెమెరా & గోప్యత",
+    "cameraPrivacyDesc": "పూర్తిగా పరికరంలోనే ప్రాసెస్ చేయబడుతుంది. ఫోన్ నుండి ఏ వీడియో బయటకు వెళ్లదు.",
+    "therapist": "కనెక్ట్ అయిన థెరపిస్ట్",
+    "drAnita": "డా. అనిత దేశాయ్, పి.టి"
+  },
+  "therapist": {
+    "badge": "క్లినికల్ థెరపిస్ట్ పోర్టల్",
+    "greeting": "శుభోదయం, డా. అనిత",
+    "activePatients": "12 క్రియాశీల రోగులు",
+    "onTrack": "ట్రాక్‌లో ఉన్నారు",
+    "missed": "మిస్ అయిన సెషన్లు",
+    "needsReview": "సమీక్ష అవసరం",
+    "recoveryProgress": "రికవరీ పురోగతి",
+    "painTrend": "నొప్పి సరళి",
+    "adjustProgram": "కార్యక్రమాన్ని సవరించండి"
+  },
+  "common": {
+    "continue": "కొనసాగించండి",
+    "retry": "మళ్ళీ ప్రయత్నించండి",
+    "close": "మూసివేయండి",
+    "back": "వెనుకకు",
+    "painToday": "ఈ రోజు నొప్పి ఎంత ఉంది?",
+    "noPain": "నొప్పి లేదు",
+    "mildPain": "స్వల్పం",
+    "moderatePain": "మధ్యస్తం",
+    "severePain": "తీవ్రం"
+  }
+}

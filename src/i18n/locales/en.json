@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "progress": "Progress",
+    "you": "You"
+  },
+  "home": {
+    "greeting": "Good morning",
+    "howAreYou": "How is your body feeling today?",
+    "feeling_great": "Great",
+    "feeling_okay": "Okay",
+    "feeling_sore": "Sore",
+    "todaySession": "Today's Session",
+    "sessionTitle": "Morning Mobility",
+    "sessionMeta": "12 min • 6 exercises",
+    "startSession": "Start Session",
+    "yourProgress": "Your Progress",
+    "consistency": "Weekly Consistency",
+    "days": {
+      "mon": "M",
+      "tue": "T",
+      "wed": "W",
+      "thu": "T",
+      "fri": "F",
+      "sat": "S",
+      "sun": "S"
+    }
+  },
+  "explore": {
+    "title": "Explore Practices",
+    "subtitle": "Mindful motion, structured clinical recovery & flow",
+    "categories": {
+      "yoga": "Yoga",
+      "physio": "Physiotherapy",
+      "mobility": "Mobility",
+      "breathing": "Breathing",
+      "strength": "Strength",
+      "recovery": "Recovery"
+    }
+  },
+  "progress": {
+    "title": "Your Journey",
+    "consistency": "Weekly Consistency",
+    "completedSessions": "Sessions",
+    "exercisesDone": "Exercises",
+    "streak": "Best Streak",
+    "movementImprovement": "Movement Improvement",
+    "shoulderMobility": "Shoulder Mobility",
+    "week1": "Week 1",
+    "week2": "Week 2",
+    "week3": "Week 3"
+  },
+  "profile": {
+    "title": "You",
+    "goals": "Goals & Focus",
+    "programs": "Active Programs",
+    "preferences": "Preferences",
+    "language": "Language",
+    "cameraPermissions": "Camera & Privacy",
+    "cameraPrivacyDesc": "Processed on-device only. No video ever leaves your phone.",
+    "therapist": "Connected Therapist",
+    "drAnita": "Dr. Anita Desai, PT"
+  },
+  "therapist": {
+    "badge": "Clinical Therapist Portal",
+    "greeting": "Good morning, Dr. Anita",
+    "activePatients": "12 active patients",
+    "onTrack": "On track",
+    "missed": "Missed sessions",
+    "needsReview": "Needs review",
+    "recoveryProgress": "Recovery Progress",
+    "painTrend": "Pain Trend",
+    "adjustProgram": "Adjust Program"
+  },
+  "common": {
+    "continue": "Continue",
+    "retry": "Retry",
+    "close": "Close",
+    "back": "Back",
+    "painToday": "Pain today?",
+    "noPain": "None",
+    "mildPain": "Mild",
+    "moderatePain": "Moderate",
+    "severePain": "Severe"
+  }
+}

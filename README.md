@@ -1,0 +1,114 @@
+# Calm Motion — On-Device Live Yoga & Physiotherapy Motion Coach
+
+> **"Intelligent movement guidance that lives on your phone, never in the cloud."**
+
+Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application featuring a real-time on-device AI motion coach. It observes movement through your smartphone's front camera and provides soothing, real-time guidance (e.g. *"Lower your right shoulder slightly."*), counts repetitions with range-of-motion tracking, detects compensations, and operates **100% offline** without transmitting video or biometric data to any external server.
+
+---
+
+## 🌟 Key Features
+
+1. **Live On-Device Motion Coach**:
+   - Analyzes 33 body keypoints at ~30 FPS on-device.
+   - High-DPR canvas skeleton overlay with gentle pulsing correction highlights.
+   - Debounced coaching feedback: one instruction at a time, displayed for at least 1.5 seconds with text and icons (never color alone).
+
+2. **Multilingual Voice Coaching & Input**:
+   - Text-to-Speech coaching in English, Hindi (हिन्दी), and Telugu (తెలుగు).
+   - Voice pain check-in ("Left knee hurts, about 6") transformed into structured records.
+
+3. **Physiotherapy Intelligence & Safety**:
+   - Strict non-diagnostic disclaimer on all clinical screens: *"This app gives movement guidance and is not a medical diagnosis. Stop if you feel sharp pain."*
+   - Red flag safety stop: Automatically pauses the workout if pain is 7+ or sharp pain is reported.
+   - Week-over-week Range of Motion (ROM) progression (e.g., *"Your shoulder lift is 12° higher than last week"*).
+   - Adaptive plan rules adjusting next day's reps and holds based on form quality and pain.
+
+4. **100% Offline & Private**:
+   - Progressive Web App (PWA) with full offline precaching of models, WASM binaries, fonts, and inline SVG illustrations.
+   - Zero cloud requirement: Operates seamlessly in **Airplane Mode**.
+   - Privacy guarantee: Camera frames never leave volatile device memory. Only summary metrics are stored locally in IndexedDB.
+
+5. **Therapist Portal & Laptop Bridge**:
+   - Dual-role switch: Patient mode and Clinical Therapist mode.
+   - 12 realistic patient records under care with adherence and pain trajectories.
+   - Local network / QR code report sync to a clinic laptop bridge without internet.
+
+---
+
+## 🚀 How to Run Locally
+
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- Google Chrome, Safari, or Microsoft Edge
+
+### Step 1: Install Dependencies
+```bash
+npm install
+```
+
+### Step 2: Start the Dev Server
+```bash
+npm run dev
+```
+The server will start on local HTTPS:
+- Local URL: `https://localhost:5173`
+- Network URL: `https://<your-laptop-ip>:5173` (e.g., `https://192.168.29.60:5173`)
+
+*(Note: Because local dev uses self-signed SSL for camera access, click **"Advanced"** and **"Proceed to localhost"** when prompted by your browser).*
+
+---
+
+## 📱 How to Install on Your Phone (PWA)
+
+### Option A: Over Local Wi-Fi (Direct from Laptop)
+1. Connect your phone to the same Wi-Fi network as your laptop.
+2. Open Safari (iOS) or Chrome (Android) and navigate to `https://<your-laptop-ip>:5173` (e.g., `https://192.168.29.60:5173`).
+3. Tap **"Advanced"** → **"Proceed"** to bypass the self-signed SSL warning.
+4. Add to Home Screen:
+   - **iOS Safari**: Tap the Share button (square with arrow up) → scroll down and tap **"Add to Home Screen"**.
+   - **Android Chrome**: Tap the three dots (menu) → tap **"Install app"** or **"Add to Home screen"**.
+5. Re-open Calm Motion from your phone's home screen icon. It now runs full-screen like a native app.
+
+### Option B: Free Vercel Deployment
+1. Import this repository into [Vercel](https://vercel.com).
+2. The included `vercel.json` automatically configures HTTPS and SPA rewrites.
+3. Open the production URL on your phone and tap **"Add to Home Screen"**.
+
+### Testing Offline (Airplane Mode)
+1. Open Calm Motion on your phone once to allow the service worker to cache all assets.
+2. Turn on **Airplane Mode** (disconnect both Wi-Fi and mobile data).
+3. Re-open Calm Motion from your home screen.
+4. Notice the quiet **"Works offline"** badge. Start an exercise—tracking, voice guidance, and completion work completely offline!
+
+---
+
+## ⚙️ How the Pose Engine Works
+
+1. **Capture & Pre-processing**: Front camera video stream is captured via `navigator.mediaDevices.getUserMedia` in portrait orientation and mirrored for natural human proprioception.
+2. **Pose Inference**: MediaPipe Pose Landmarker processes frames using GPU (WebGL/WebGPU) with automatic CPU fallback.
+3. **Signal Smoothing (One Euro Filter)**: Raw landmark coordinates pass through an adaptive low-pass filter to dampen low-speed jitter while preserving rapid movement responsiveness without lag.
+4. **Biomechanical Geometry**: Angles are calculated across joint vertices (shoulder, elbow, hip, knee, spine) using 2D/3D vector dot products, normalized by torso height.
+5. **State Machines**:
+   - **Repetition Machine**: Hysteresis thresholds, minimum rep duration, and partial-rep rejection.
+   - **Yoga Hold Machine**: Accumulates hold duration only while alignment is within prescribed tolerance windows; monitors body sway and tremor.
+6. **Priority Rule Arbiter**: Evaluates form checks and compensation rules (knee valgus, shoulder shrug, excessive trunk lean), emitting **only the single highest-priority correction** at any moment.
+
+---
+
+## 📊 Live Metrics Panel (Judge & Dev Tool)
+
+During any active exercise session, **tap the "LIVE COACH" emerald badge** at the top of the screen to open the Live On-Device Metrics Panel:
+- **Frame Rate**: Real-time FPS (~30 FPS).
+- **Inference Time**: Latency in ms (~22 ms/frame).
+- **Hardware Delegate**: `GPU (WebGL)` or `CPU Fallback`.
+- **Network State**: `Offline (Airplane Mode)` vs `Local Wi-Fi`.
+- **Battery Level & Drain**: Live battery percentage read directly from the device.
+- **JS Heap Memory**: Volatile memory consumption (~12–42 MB).
+
+---
+
+## ⚠️ Known Limitations
+
+1. **Lighting & Distance**: On-device computer vision requires sufficient room light and phone placement approximately 2 meters away so the full body remains visible in frame.
+2. **Web Speech API Language Packs**: Text-to-speech for Hindi and Telugu depends on whether your operating system has downloaded the respective language voice pack. If absent, the app falls back gracefully to on-screen text cues with a clear notice.
+3. **NPU Hardware Counters**: Mobile browsers sandbox hardware access and do not expose raw NPU utilization counters to JavaScript; GPU acceleration is actively measured and verified.
