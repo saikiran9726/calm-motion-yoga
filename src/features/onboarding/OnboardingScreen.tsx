@@ -91,7 +91,7 @@ export const OnboardingScreen: React.FC = () => {
           setCameraPermission('granted');
           addToast({
             title: 'Camera access granted',
-            description: '100% on-device live coaching is ready.',
+            description: 'On-device live coaching is ready.',
             type: 'success',
           });
         } catch {
@@ -290,8 +290,8 @@ export const OnboardingScreen: React.FC = () => {
                         <EyeOff className="w-4 h-4" />
                       </div>
                       <div className="text-left">
-                        <span className="text-caption-medium font-bold text-primary block">Zero Video Uploads</span>
-                        <span className="text-metadata text-secondary block">Frames are analyzed in memory and immediately discarded.</span>
+                        <span className="text-caption-medium font-bold text-primary block">Private On-Device Processing</span>
+                        <span className="text-metadata text-secondary block">Camera video is processed on the device and is never uploaded. Only summary metrics are sent to the clinic when joined and online.</span>
                       </div>
                     </div>
 
@@ -300,8 +300,8 @@ export const OnboardingScreen: React.FC = () => {
                         <WifiOff className="w-4 h-4" />
                       </div>
                       <div className="text-left">
-                        <span className="text-caption-medium font-bold text-primary block">100% Fully Offline</span>
-                        <span className="text-metadata text-secondary block">Motion tracking runs completely on your phone with no internet.</span>
+                        <span className="text-caption-medium font-bold text-primary block">Works Offline</span>
+                        <span className="text-metadata text-secondary block">Works offline; syncs when back online.</span>
                       </div>
                     </div>
                   </div>

@@ -15,6 +15,8 @@ export interface YogaPose {
   alignmentTips: [string, string, string];
   keyJoints: string[];
   svgType: 'mountain' | 'tree' | 'warrior2' | 'chair' | 'triangle' | 'catcow' | 'child' | 'downward_dog';
+  mode: 'hold';
+  previewOnly?: boolean;
 }
 
 export const YOGA_POSES: YogaPose[] = [
@@ -25,6 +27,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'standing',
     durationSeconds: 45,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: false,
     description: 'A powerful standing pose that cultivates focus, grounded stability, and hip opening.',
     breathing: {
       inhaleSec: 4,
@@ -47,6 +51,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'balance',
     durationSeconds: 40,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: true,
     description: 'An elegant balancing pose establishing rooted poise, ankle strength, and mental calm.',
     breathing: {
       inhaleSec: 4,
@@ -69,6 +75,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'standing',
     durationSeconds: 60,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: true,
     description: 'The foundational posture of all standing poses, restoring natural spinal alignment.',
     breathing: {
       inhaleSec: 4,
@@ -91,6 +99,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'standing',
     durationSeconds: 30,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: true,
     description: 'Invigorates the thighs and spine while activating core stability and calf strength.',
     breathing: {
       inhaleSec: 3,
@@ -113,6 +123,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'standing',
     durationSeconds: 45,
     difficulty: 'Intermediate',
+    mode: 'hold',
+    previewOnly: true,
     description: 'Lengthens the hamstrings, expands ribcage capacity, and stimulates digestive organs.',
     breathing: {
       inhaleSec: 4,
@@ -135,6 +147,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'floor',
     durationSeconds: 60,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: true,
     description: 'Gentle spinal wave movement warming every vertebra and releasing neck and back tension.',
     breathing: {
       inhaleSec: 4,
@@ -157,6 +171,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'floor',
     durationSeconds: 90,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: true,
     description: 'A deeply restorative sanctuary posture calming the nervous system and easing lower back strain.',
     breathing: {
       inhaleSec: 4,
@@ -179,6 +195,8 @@ export const YOGA_POSES: YogaPose[] = [
     category: 'floor',
     durationSeconds: 50,
     difficulty: 'Beginner',
+    mode: 'hold',
+    previewOnly: true,
     description: 'An energizing full-body inversion stretching calves, hamstrings, and shoulders.',
     breathing: {
       inhaleSec: 4,

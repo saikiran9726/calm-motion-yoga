@@ -49,7 +49,7 @@ export const AboutScreen: React.FC = () => {
         <ul className="space-y-2.5 text-caption text-primary">
           <li className="flex items-start gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-forest shrink-0 mt-2" />
-            <span><strong>100% On-Device Privacy:</strong> Camera frames are processed strictly in browser memory on the user's phone. No video, images, or biometric face/body data are ever sent over the network or stored.</span>
+            <span><strong>On-Device Privacy:</strong> Camera video is processed on the device and is never uploaded. Only summary metrics (reps or hold time, peak ROM, pain scores, form quality) are sent to the clinic when the user has joined a clinic and is online.</span>
           </li>
           <li className="flex items-start gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-forest shrink-0 mt-2" />
@@ -65,7 +65,7 @@ export const AboutScreen: React.FC = () => {
           </li>
           <li className="flex items-start gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-forest shrink-0 mt-2" />
-            <span><strong>Clinical Pain-Stop Safety Rule:</strong> Automatically halts workout if user discomfort reaches level 5 or above to safeguard vulnerable joints.</span>
+            <span><strong>Clinical Pain-Stop Safety Rule:</strong> Automatically halts workout if user discomfort reaches the stop threshold (default 5, configurable by therapist) to safeguard vulnerable joints.</span>
           </li>
           <li className="flex items-start gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-forest shrink-0 mt-2" />

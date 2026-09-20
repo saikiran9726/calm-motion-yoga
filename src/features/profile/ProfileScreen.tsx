@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Camera,
@@ -11,17 +11,19 @@ import {
   Trash2,
   WifiOff,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  LogOut,
 } from 'lucide-react';
 import { Card, Button, BottomSheet } from '@/components/ui';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useAppStore } from '@/lib/store';
-import { db } from '@/lib/db';
+import { db, getPatientIdentity, savePatientIdentity, clearPatientIdentity, PatientProfileRecord } from '@/lib/db';
 
 export const ProfileScreen: React.FC = () => {
   const navigate = useNavigate();
   const {
     userName,
+    setUserName,
     userGoal,
     cameraPermission,
     setCameraPermission,
@@ -29,23 +31,133 @@ export const ProfileScreen: React.FC = () => {
     addToast
   } = useAppStore();
 
+  const [patientIdentity, setPatientIdentity] = useState<PatientProfileRecord | null>(null);
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [joinNameInput, setJoinNameInput] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
+  useEffect(() => {
+    getPatientIdentity().then((ident) => {
+      setPatientIdentity(ident);
+      if (ident && !userName && ident.patientId) {
+        // keep patient state intact
+      }
+    });
+    if (userName) {
+      setJoinNameInput(userName);
+    }
+  }, [userName]);
+
+  const handleJoinClinic = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const code = joinCodeInput.trim().toUpperCase();
+    const nameToUse = joinNameInput.trim() || userName.trim() || 'Patient';
+    if (!code) {
+      setJoinError('Please enter a clinic code (e.g. CALM01)');
+      return;
+    }
+
+    setIsJoining(true);
+    setJoinError(null);
+    try {
+      const res = await fetch('/api/patient/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clinicCode: code,
+          name: nameToUse,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setJoinError(data.error || 'Failed to join clinic. Please check code.');
+        setIsJoining(false);
+        return;
+      }
+
+      const newProfile: Omit<PatientProfileRecord, 'id'> = {
+        patientId: data.patient.id,
+        patientToken: data.patientToken,
+        clinicCode: data.patient.clinicCode,
+        clinicName: 'Apex Physical Therapy Clinic',
+        joinedAt: new Date().toISOString(),
+      };
+      await savePatientIdentity(newProfile);
+      setPatientIdentity({ ...newProfile, id: 'current' });
+      setUserName(nameToUse);
+      setJoinCodeInput('');
+      addToast({
+        title: 'Joined clinic successfully',
+        description: `Connected to clinic ${data.patient.clinicCode}. Your recovery program will now sync.`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      setJoinError(err.message || 'Network error while joining clinic');
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const handleLeaveClinic = async () => {
+    await clearPatientIdentity();
+    await db.cachedProgram.clear();
+    setPatientIdentity(null);
+    addToast({
+      title: 'Disconnected from clinic',
+      description: 'Switched to independent on-device mode. Outbox reports will remain local.',
+      type: 'info',
+    });
+  };
+
   const handleDeleteData = async () => {
+    const identity = await getPatientIdentity();
+    if (identity && identity.patientToken) {
+      try {
+        const res = await fetch('/api/patient/delete-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${identity.patientToken}`,
+          },
+          body: JSON.stringify({ patientId: identity.patientId }),
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          addToast({
+            title: 'Cloud purge failed',
+            description: errData.error || 'Could not verify patient credentials on server. Local data preserved.',
+            type: 'warning',
+          });
+          setDeleteConfirmOpen(false);
+          return;
+        }
+      } catch {
+        addToast({
+          title: 'Network error',
+          description: 'Could not contact clinic server to purge records. Local data preserved so you can retry.',
+          type: 'warning',
+        });
+        setDeleteConfirmOpen(false);
+        return;
+      }
+    }
+
+    // Only clear local Dexie and identity after cloud purge succeeds (or if not joined)
     resetAllData();
     try {
       await db.sessions.clear();
       await db.painLogs.clear();
       await db.outbox.clear();
-      await fetch('/api/patient/delete-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: 'patient-ananya', clinicCode: 'CALM01' }),
-      });
+      await db.cachedProgram.clear();
+      await clearPatientIdentity();
+      setPatientIdentity(null);
     } catch (e) {
-      console.warn('Backend purge warning:', e);
+      console.warn('Local purge warning:', e);
     }
     setDeleteConfirmOpen(false);
     addToast({
@@ -58,26 +170,41 @@ export const ProfileScreen: React.FC = () => {
   return (
     <div className="p-5 pb-32 space-y-6 select-none bg-offwhite min-h-screen">
       {/* 1. Photo placeholder, Name, Goals */}
-      <div className="flex items-center gap-4 pt-1">
-        <div className="w-16 h-16 rounded-full bg-forest text-offwhite flex items-center justify-center font-bold text-heading shadow-soft border-2 border-sage">
-          AK
-        </div>
-        <div className="flex-1 space-y-0.5">
-          <div className="flex items-center justify-between">
-            <h1 className="text-title font-bold text-primary">{userName} Kumar</h1>
-            {/* Offline status badge */}
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-forest bg-sage/60 px-2 py-0.5 rounded-pill">
-              <WifiOff className="w-3 h-3" /> Offline Ready
-            </span>
+      {(() => {
+        const userInitials = (userName || (import.meta.env.VITE_DEMO_MODE === 'true' ? 'Demo Patient' : 'Patient'))
+          .trim()
+          .split(' ')
+          .filter(Boolean)
+          .map((w) => w[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase() || 'P';
+
+        const displayName = userName || (import.meta.env.VITE_DEMO_MODE === 'true' ? 'Demo Patient' : 'Patient');
+
+        return (
+          <div className="flex items-center gap-4 pt-1">
+            <div className="w-16 h-16 rounded-full bg-forest text-offwhite flex items-center justify-center font-bold text-heading shadow-soft border-2 border-sage">
+              {userInitials}
+            </div>
+            <div className="flex-1 space-y-0.5">
+              <div className="flex items-center justify-between">
+                <h1 className="text-title font-bold text-primary">{displayName}</h1>
+                {/* Offline status badge */}
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-forest bg-sage/60 px-2 py-0.5 rounded-pill">
+                  <WifiOff className="w-3 h-3" /> Offline Ready
+                </span>
+              </div>
+              <p className="text-caption text-secondary">
+                Focus: {userGoal === 'both' ? 'Yoga Flow & Shoulder Rehab' : userGoal === 'yoga' ? 'Mindful Yoga' : 'Clinical Physiotherapy'}
+              </p>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary pt-0.5">
+                <Sparkles className="w-3 h-3 text-forest" /> Active Member • On-Device Storage
+              </span>
+            </div>
           </div>
-          <p className="text-caption text-secondary">
-            Focus: {userGoal === 'both' ? 'Yoga Flow & Shoulder Rehab' : userGoal === 'yoga' ? 'Mindful Yoga' : 'Clinical Physiotherapy'}
-          </p>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary pt-0.5">
-            <Sparkles className="w-3 h-3 text-forest" /> Active Member • On-Device Storage
-          </span>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* 2. Current Active Programs Card */}
       <div className="space-y-2">
@@ -111,32 +238,100 @@ export const ProfileScreen: React.FC = () => {
         </Card>
       </div>
 
-      {/* 3. Connected Therapist */}
+      {/* 3. Connected Clinic & Therapist */}
       <div className="space-y-2">
         <span className="text-metadata font-bold text-secondary uppercase tracking-wider">
-          Connected Therapist
+          Supervising Clinic
         </span>
 
-        <Card variant="default" className="p-4 rounded-card shadow-card">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-sage flex items-center justify-center text-forest shrink-0">
-                <Stethoscope className="w-5 h-5" />
+        {patientIdentity ? (
+          <Card variant="default" className="p-4 rounded-card shadow-card space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-sage flex items-center justify-center text-forest shrink-0">
+                  <Stethoscope className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-body-medium font-bold text-primary">Dr. Anita Desai, PT</h4>
+                  <p className="text-metadata text-secondary">Apex Physical Therapy Clinic</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-body-medium font-bold text-primary">Dr. Anita Desai, PT</h4>
-                <p className="text-metadata text-secondary">Apex Physical Therapy Clinic</p>
-              </div>
+              <span className="px-2.5 py-1 rounded-pill bg-forest text-white text-[11px] font-mono font-bold">
+                {patientIdentity.clinicCode}
+              </span>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/therapist')}
-              className="text-metadata font-bold text-forest hover:underline px-2 py-1"
-            >
-              Portal
-            </button>
-          </div>
-        </Card>
+
+            <div className="pt-2 border-t border-border-subtle flex items-center justify-between text-metadata text-secondary">
+              <span className="font-mono text-[11px]">
+                ID: {patientIdentity.patientId.slice(0, 14)}…
+              </span>
+              <button
+                type="button"
+                onClick={handleLeaveClinic}
+                className="text-coral-dark hover:underline font-semibold flex items-center gap-1 text-[11px]"
+              >
+                <LogOut className="w-3 h-3" />
+                Leave clinic
+              </button>
+            </div>
+          </Card>
+        ) : (
+          <Card variant="default" className="p-4 rounded-card shadow-card space-y-3">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <h4 className="text-body-medium font-bold text-primary">Not connected to a clinic</h4>
+                <span className="text-[10px] font-semibold text-secondary bg-sand/60 px-2 py-0.5 rounded-pill">
+                  Local Mode
+                </span>
+              </div>
+              <p className="text-caption text-secondary">
+                Your practice reports stay local on this phone. Enter your clinic code from your therapist to sync session data.
+              </p>
+            </div>
+
+            <form onSubmit={handleJoinClinic} className="space-y-2.5 pt-1">
+              <div>
+                <label className="text-[11px] font-bold text-secondary uppercase block mb-1">
+                  Clinic Code
+                </label>
+                <input
+                  type="text"
+                  value={joinCodeInput}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJoinCodeInput(e.target.value)}
+                  placeholder="e.g. CALM01"
+                  className="w-full px-3.5 py-2.5 rounded-input border border-border-subtle bg-white text-primary text-body focus:outline-none focus:ring-2 focus:ring-forest/20 uppercase font-mono tracking-wider"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-secondary uppercase block mb-1">
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  value={joinNameInput}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJoinNameInput(e.target.value)}
+                  placeholder="e.g. Your Name"
+                  className="w-full px-3.5 py-2.5 rounded-input border border-border-subtle bg-white text-primary text-body focus:outline-none focus:ring-2 focus:ring-forest/20"
+                />
+              </div>
+
+              {joinError && (
+                <p className="text-caption text-coral-dark font-medium">{joinError}</p>
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="default"
+                className="w-full font-bold"
+                disabled={isJoining}
+              >
+                {isJoining ? 'Connecting…' : 'Connect to Clinic'}
+              </Button>
+            </form>
+          </Card>
+        )}
       </div>
 
       {/* 4. Preferences & Settings List */}

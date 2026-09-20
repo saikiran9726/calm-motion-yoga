@@ -1,28 +1,34 @@
-import { DeleteDataSchema } from '../_lib/validation';
-import { dbService } from '../_lib/db';
+import { DeleteDataSchema } from "../_lib/validation";
+import { dbService } from "../_lib/db";
+import { requirePatient } from "../_lib/auth";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (!checkServerConfig(res)) return;
+  if (handleCors(req, res)) return;
+  if (!ensureMethod(req, res, ["POST", "DELETE"])) return;
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST' && req.method !== 'DELETE') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const patient = await requirePatient(req, res);
+  if (!patient) return;
 
   try {
     const parse = DeleteDataSchema.safeParse(req.body);
     if (!parse.success) {
-      return res.status(400).json({ error: 'Validation failed', details: parse.error.format() });
+      return res.status(400).json({ error: "Validation failed", details: parse.error.format() });
     }
 
-    await dbService.deletePatientData(parse.data.patientId);
+    // Patient can only delete their own data
+    if (parse.data.patientId !== patient.id) {
+      return res.status(403).json({ error: "Forbidden: Cannot delete data of another patient" });
+    }
+
+    await dbService.deletePatientData(patient.id);
     return res.status(200).json({
       success: true,
-      message: 'All cloud clinic data permanently purged for patient ' + parse.data.patientId,
+      message: "All cloud clinic data permanently purged for patient " + patient.id,
     });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || 'Server error' });
+  } catch {
+    return res.status(500).json({ error: "Failed to purge patient data" });
   }
 }
+

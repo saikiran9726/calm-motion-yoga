@@ -6,17 +6,17 @@ import { Button } from '@/components/ui';
 export interface DevMetricsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  fps?: number;
-  inferenceTimeMs?: number;
-  delegate?: 'GPU' | 'CPU';
+  fps?: number | null;
+  inferenceTimeMs?: number | null;
+  delegate?: 'GPU' | 'CPU' | null;
 }
 
 export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
   isOpen,
   onClose,
-  fps = 30,
-  inferenceTimeMs = 24,
-  delegate = 'GPU',
+  fps = null,
+  inferenceTimeMs = null,
+  delegate = null,
 }) => {
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [isCharging, setIsCharging] = useState<boolean>(false);
@@ -92,7 +92,9 @@ export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-0.5">
               <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">Frame Rate</span>
               <div className="flex items-baseline gap-1">
-                <span className="text-heading font-mono font-bold text-emerald-300">{fps.toFixed(1)}</span>
+                <span className="text-heading font-mono font-bold text-emerald-300">
+                  {fps !== null && fps !== undefined ? fps.toFixed(1) : 'n/a'}
+                </span>
                 <span className="text-[11px] text-secondary">FPS</span>
               </div>
             </div>
@@ -101,7 +103,9 @@ export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
             <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-0.5">
               <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">Inference Time</span>
               <div className="flex items-baseline gap-1">
-                <span className="text-heading font-mono font-bold text-sage">{inferenceTimeMs}</span>
+                <span className="text-heading font-mono font-bold text-sage">
+                  {inferenceTimeMs !== null && inferenceTimeMs !== undefined ? `${inferenceTimeMs}` : 'n/a'}
+                </span>
                 <span className="text-[11px] text-secondary">ms / frame</span>
               </div>
             </div>
@@ -111,7 +115,9 @@ export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
               <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">Hardware Delegate</span>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <Cpu className="w-4 h-4 text-emerald-400" />
-                <span className="text-body font-bold text-white font-mono">{delegate} (WebGL)</span>
+                <span className="text-body font-bold text-white font-mono">
+                  {delegate ? `${delegate}` : 'n/a'}
+                </span>
               </div>
             </div>
 
@@ -139,7 +145,7 @@ export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
               <div className="flex items-center gap-1.5 mt-0.5">
                 <Battery className="w-4 h-4 text-sage" />
                 <span className="text-body font-bold text-white font-mono">
-                  {batteryLevel !== null ? `${batteryLevel}%` : '88%'}
+                  {batteryLevel !== null ? `${batteryLevel}%` : 'n/a'}
                   {isCharging && ' ⚡'}
                 </span>
               </div>
@@ -151,7 +157,7 @@ export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
               <div className="flex items-center gap-1.5 mt-0.5">
                 <HardDrive className="w-4 h-4 text-sage" />
                 <span className="text-body font-bold text-white font-mono">
-                  {memoryMB !== null ? `${memoryMB} MB` : '42 MB'}
+                  {memoryMB !== null ? `${memoryMB} MB` : 'n/a'}
                 </span>
               </div>
             </div>
@@ -161,7 +167,7 @@ export const DevMetricsModal: React.FC<DevMetricsModalProps> = ({
           <div className="p-2.5 bg-forest/40 rounded-xl border border-sage/15 flex items-start gap-2 text-[11px] text-sage/90">
             <ShieldCheck className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />
             <span>
-              <strong>Hardware Honesty:</strong> Camera frames are processed on-device. Mobile browsers do not expose direct NPU counters; WebGL GPU acceleration is actively measured.
+              <strong>Hardware Honesty:</strong> Camera frames are processed on-device. Frame latency and delegate status are tracked locally in your browser sandbox.
             </span>
           </div>
 

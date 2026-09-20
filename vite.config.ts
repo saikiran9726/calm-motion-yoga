@@ -26,7 +26,7 @@ export default defineConfig({
     basicSsl(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Calm Motion - Yoga & Physiotherapy',
         short_name: 'Calm Motion',
@@ -37,22 +37,29 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/pwa-192x192.svg',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png',
           },
           {
-            src: '/pwa-512x512.svg',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          }
-        ]
+            type: 'image/png',
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2,png,ico,json}']
-      }
-    })
+        globPatterns: ['**/*.{js,css,html,svg,woff2,woff,png,ico,json,wasm,task}'],
+        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024,
+        navigateFallbackDenylist: [/^\/api\//],
+      },
+    }),
   ],
   resolve: {
     alias: {

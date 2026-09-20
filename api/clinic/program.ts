@@ -1,33 +1,49 @@
-import { ProgramUpdateSchema } from '../_lib/validation';
-import { dbService } from '../_lib/db';
+import { ProgramUpdateSchema, PatientIdQuerySchema } from "../_lib/validation";
+import { dbService } from "../_lib/db";
+import { requireClinic } from "../_lib/auth";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (!checkServerConfig(res)) return;
+  if (handleCors(req, res)) return;
+  if (!ensureMethod(req, res, ["GET", "POST", "PUT"])) return;
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  const auth = await requireClinic(req, res);
+  if (!auth) return;
 
-  if (req.method === 'GET') {
-    const patientId = req.query.patientId as string;
-    if (!patientId) return res.status(400).json({ error: 'patientId is required' });
-    const program = await dbService.getProgram(patientId);
+  const clinicCode = auth.clinicCode;
+
+  if (req.method === "GET") {
+    const parse = PatientIdQuerySchema.safeParse(req.query);
+    if (!parse.success) return res.status(400).json({ error: "Invalid patientId" });
+
+    const patient = await dbService.getPatient(parse.data.patientId);
+    if (!patient || patient.clinicCode !== clinicCode) {
+      return res.status(404).json({ error: "Patient not found in clinic" });
+    }
+
+    const program = await dbService.getProgram(parse.data.patientId);
     return res.status(200).json({ success: true, program });
   }
 
-  if (req.method === 'POST' || req.method === 'PUT') {
+  if (req.method === "POST" || req.method === "PUT") {
     const parse = ProgramUpdateSchema.safeParse(req.body);
     if (!parse.success) {
-      return res.status(400).json({ error: 'Validation failed', details: parse.error.format() });
+      return res.status(400).json({ error: "Validation failed", details: parse.error.format() });
+    }
+
+    const patient = await dbService.getPatient(parse.data.patientId);
+    if (!patient || patient.clinicCode !== clinicCode) {
+      return res.status(404).json({ error: "Patient not found in clinic" });
     }
 
     const updated = await dbService.updateProgram({
       ...parse.data,
+      clinicCode,
       updatedAt: new Date().toISOString(),
     });
 
     return res.status(200).json({ success: true, program: updated });
   }
-
-  return res.status(405).json({ error: 'Method not allowed' });
 }
+

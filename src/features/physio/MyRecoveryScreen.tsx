@@ -162,13 +162,20 @@ export const MyRecoveryScreen: React.FC = () => {
                     )}
                   </div>
                   <div className="space-y-0.5">
-                    <h4
-                      className={`text-body-medium font-bold ${
-                        isDone ? 'text-primary/70 line-through' : 'text-primary'
-                      }`}
-                    >
-                      {ex.name}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4
+                        className={`text-body-medium font-bold ${
+                          isDone ? 'text-primary/70 line-through' : 'text-primary'
+                        }`}
+                      >
+                        {ex.name}
+                      </h4>
+                      {ex.previewOnly && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          Preview only
+                        </span>
+                      )}
+                    </div>
                     <p className="text-metadata text-secondary">{ex.defaultReps} • {ex.targetArea}</p>
                   </div>
                 </button>

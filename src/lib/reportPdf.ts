@@ -9,10 +9,12 @@ export interface SessionReportData {
   durationSeconds: number;
   repsCompleted: number;
   targetReps: number;
-  peakRom: number;
+  mode?: 'hold' | 'reps';
+  peakRom?: number;
   formQuality: 'Excellent' | 'Good' | 'Needs Attention';
   painBefore: number;
   painAfter: number;
+  painThreshold?: number;
   painInterrupted?: boolean;
   notes?: string;
 }
@@ -80,10 +82,15 @@ export function generateSessionPdf(data: SessionReportData) {
   doc.text(`Duration: ${Math.floor(data.durationSeconds / 60)}m ${data.durationSeconds % 60}s`, 145, 68);
 
   // 3. Clinical Metrics Grid (4 Key Metric Boxes)
+  const isHold = data.mode === 'hold' || data.exerciseTitle.toLowerCase().includes('warrior') || data.exerciseTitle.toLowerCase().includes('yoga');
   const metrics = [
-    { label: 'REPETITIONS', val: `${data.repsCompleted} / ${data.targetReps}`, sub: `${Math.round((data.repsCompleted / data.targetReps) * 100)}% completed` },
-    { label: 'PEAK ROM', val: `${data.peakRom || 92}°`, sub: 'Joint elevation' },
-    { label: 'FORM QUALITY', val: data.formQuality, sub: 'Alignment stability' },
+    {
+      label: isHold ? 'HOLD DURATION' : 'REPETITIONS',
+      val: isHold ? `${data.repsCompleted}s / ${data.targetReps}s` : `${data.repsCompleted} / ${data.targetReps}`,
+      sub: isHold ? `${Math.min(100, Math.round((data.repsCompleted / (data.targetReps || 1)) * 100))}% target hold` : `${Math.min(100, Math.round((data.repsCompleted / (data.targetReps || 1)) * 100))}% completed`
+    },
+    { label: 'PEAK ROM', val: data.peakRom && data.peakRom > 0 ? `${data.peakRom}°` : 'n/a', sub: 'Best angle reached' },
+    { label: 'FORM QUALITY', val: data.formQuality, sub: 'Alignment consistency' },
     { label: 'PAIN SHIFT', val: `${data.painBefore} -> ${data.painAfter}`, sub: data.painAfter <= data.painBefore ? 'Stable / Eased' : 'Increased' },
   ];
 
@@ -123,7 +130,8 @@ export function generateSessionPdf(data: SessionReportData) {
     doc.text('CLINICAL PAIN-STOP RULE TRIGGERED', 22, currentY + 8);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('Exercise was safely paused early because discomfort score reached or exceeded threshold. Rest protocol applied.', 22, currentY + 15);
+    const threshStr = data.painThreshold !== undefined ? `${data.painThreshold}/10` : '5/10';
+    doc.text(`Exercise safely paused: discomfort reached or exceeded clinical threshold of ${threshStr}. Rest protocol applied.`, 22, currentY + 15);
     currentY += 28;
   } else {
     doc.setFillColor(...sage);
@@ -132,10 +140,11 @@ export function generateSessionPdf(data: SessionReportData) {
     doc.setTextColor(...forest);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
-    doc.text('CLINICAL ADHERENCE STATUS: PROTOCOL COMPLETED SAFELY', 22, currentY + 7);
+    const threshStr = data.painThreshold !== undefined ? `≤ ${data.painThreshold}/10` : '≤ 5/10';
+    doc.text(`CLINICAL ADHERENCE STATUS: PROTOCOL COMPLETED SAFELY (${threshStr})`, 22, currentY + 7);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
-    doc.text('No adverse pain limits breached. Patient maintained steady scapulohumeral rhythm.', 22, currentY + 12);
+    doc.text('No adverse pain limits breached. Patient maintained steady rhythm and safe boundaries.', 22, currentY + 12);
     currentY += 22;
   }
 

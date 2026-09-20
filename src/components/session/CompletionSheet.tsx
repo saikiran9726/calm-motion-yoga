@@ -6,11 +6,13 @@ import { Button } from '@/components/ui';
 export interface CompletionSheetProps {
   repsCompleted: number;
   totalReps: number;
+  mode?: 'hold' | 'reps';
   peakRom?: number;
   formQuality?: 'Excellent' | 'Good' | 'Needs Attention';
   encouragementSentence?: string;
   painBefore?: number;
   painAfter?: number;
+  painThreshold?: number;
   painInterrupted?: boolean;
   isSynced?: boolean;
   onDownloadPdf?: () => void;
@@ -21,11 +23,13 @@ export interface CompletionSheetProps {
 export const CompletionSheet: React.FC<CompletionSheetProps> = ({
   repsCompleted = 10,
   totalReps = 10,
+  mode = 'hold',
   peakRom = 92,
   formQuality = 'Excellent',
   encouragementSentence = 'Your hip stability and shoulder balance were remarkably consistent throughout the movement.',
   painBefore = 2,
   painAfter = 2,
+  painThreshold,
   painInterrupted = false,
   isSynced = true,
   onDownloadPdf,
@@ -88,9 +92,11 @@ export const CompletionSheet: React.FC<CompletionSheetProps> = ({
         {/* 3 Metric Cards Grid */}
         <div className="grid grid-cols-3 gap-2.5 pt-1">
           <div className="p-3 bg-forest/5 rounded-card-sm border border-border-subtle text-center">
-            <span className="text-[11px] text-secondary font-bold uppercase tracking-wider block">Reps</span>
+            <span className="text-[11px] text-secondary font-bold uppercase tracking-wider block">
+              {mode === 'hold' ? 'Hold Time' : 'Reps'}
+            </span>
             <span className="text-title font-bold text-forest block mt-0.5">
-              {repsCompleted} / {totalReps}
+              {mode === 'hold' ? `${repsCompleted}s / ${totalReps}s` : `${repsCompleted} / ${totalReps}`}
             </span>
             <span className="text-[10px] text-secondary">Completed</span>
           </div>
@@ -108,7 +114,9 @@ export const CompletionSheet: React.FC<CompletionSheetProps> = ({
             <span className="text-title font-bold text-primary block mt-0.5">
               {painBefore} → {painAfter}
             </span>
-            <span className="text-[10px] text-secondary">Self-Report</span>
+            <span className="text-[10px] text-secondary">
+              {painThreshold !== undefined ? `Limit: ≤${painThreshold}` : 'Self-Report'}
+            </span>
           </div>
         </div>
 

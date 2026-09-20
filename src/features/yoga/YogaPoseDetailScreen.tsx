@@ -42,13 +42,18 @@ export const YogaPoseDetailScreen: React.FC = () => {
 
       {/* Title & Sanskrit */}
       <div className="space-y-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-display font-bold text-primary tracking-tight">
             {currentPose.name}
           </h1>
           <span className="text-caption font-serif italic text-secondary">
             ({currentPose.sanskrit})
           </span>
+          {currentPose.previewOnly && (
+            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+              Preview only
+            </span>
+          )}
         </div>
         <p className="text-body text-secondary leading-relaxed">
           {currentPose.description}

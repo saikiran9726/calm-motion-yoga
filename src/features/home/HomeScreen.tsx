@@ -291,7 +291,7 @@ export const HomeScreen: React.FC = () => {
           <div className="p-3.5 rounded-card-sm bg-sand/30 border border-sand/50 flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-forest shrink-0" />
             <p className="text-caption text-secondary">
-              Camera feeds are processed <strong>100% on-device</strong> and never recorded.
+              Camera video is processed on the device and is never uploaded. Only summary metrics are sent to the clinic when joined and online.
             </p>
           </div>
 
@@ -352,7 +352,7 @@ export const HomeScreen: React.FC = () => {
               <div>
                 <strong className="text-caption font-bold text-primary block">Supervision Clinic Portal (/clinic)</strong>
                 <p className="text-metadata text-secondary mt-0.5">
-                  Passcode: <code className="font-mono font-bold text-forest">CALM2026</code>. Live 5s polling, patient cohort, program adjustment, and demo seed data.
+                  Demo Passcode: <code className="font-mono font-bold text-forest">CALM2026</code>. Live 5s polling, patient cohort, program adjustment, and demo seed data.
                 </p>
                 <div className="pt-2">
                   <Button

@@ -1,15 +1,18 @@
-import { dbService } from '../_lib/db';
+import { dbService } from "../_lib/db";
+import { requireClinic } from "../_lib/auth";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (!checkServerConfig(res)) return;
+  if (handleCors(req, res)) return;
+  if (!ensureMethod(req, res, ["GET"])) return;
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const auth = await requireClinic(req, res);
+  if (!auth) return;
 
   try {
-    const clinicCode = (req.query.clinicCode as string) || 'CALM01';
+    // Clinic code derived exclusively from verified JWT
+    const clinicCode = auth.clinicCode;
     const patients = await dbService.getPatients(clinicCode);
     const reports = await dbService.getReports(clinicCode);
 
@@ -20,7 +23,8 @@ export default async function handler(req: any, res: any) {
       recentReportsCount: reports.length,
       latestReportTimestamp: reports[0]?.timestamp || null,
     });
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message || 'Server error' });
+  } catch {
+    return res.status(500).json({ error: "Failed to retrieve patients" });
   }
 }
+

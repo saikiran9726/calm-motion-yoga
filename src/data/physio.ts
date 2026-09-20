@@ -7,6 +7,8 @@ export interface PhysioExercise {
   guidance: string;
   focusPoint: string;
   contraindications: string;
+  mode?: 'reps' | 'hold';
+  previewOnly?: boolean;
 }
 
 export interface PhysioProgram {
@@ -38,6 +40,8 @@ export const PHYSIO_PROGRAMS: Record<string, PhysioProgram> = {
         targetArea: 'Serratus anterior & lower trapezius',
         defaultReps: '3 sets of 10 glides',
         done: true,
+        mode: 'reps',
+        previewOnly: false,
         guidance: 'Place forearms on the wall with towel or foam roller. Glide upward without shrugging shoulders.',
         focusPoint: 'Feel the shoulder blades slide smoothly around the ribcage.',
         contraindications: 'Stop if sharp pinching occurs at the top of the shoulder.',

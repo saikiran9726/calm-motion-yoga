@@ -2,14 +2,14 @@
 
 > **"Intelligent movement guidance that lives on your phone, never in the cloud."**
 
-Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application featuring a real-time on-device AI motion coach. It observes movement through your smartphone's front camera and provides soothing, real-time guidance (e.g. *"Lower your right shoulder slightly."*), counts repetitions with range-of-motion tracking, detects compensations, and operates **100% offline** without transmitting video or biometric data to any external server.
+Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application featuring a real-time on-device AI motion coach. It observes movement through your smartphone's front camera and provides soothing, real-time guidance (e.g. *"Lower your right shoulder slightly."*), counts repetitions with range-of-motion tracking, and detects compensations. Camera video is processed on the device and is never uploaded. Only summary metrics (reps or hold time, peak ROM, pain scores, form quality) are sent to the clinic when the user has joined a clinic and is online. The app works offline and syncs when back online.
 
 ---
 
 ## 🌟 Key Features
 
 1. **Live On-Device Motion Coach**:
-   - Analyzes 33 body keypoints at ~30 FPS on-device.
+   - Analyzes 33 body keypoints on-device in real-time.
    - High-DPR canvas skeleton overlay with gentle pulsing correction highlights.
    - Debounced coaching feedback: one instruction at a time, displayed for at least 1.5 seconds with text and icons (never color alone).
 
@@ -19,19 +19,19 @@ Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application fe
 
 3. **Physiotherapy Intelligence & Safety**:
    - Strict non-diagnostic disclaimer on all clinical screens: *"This app gives movement guidance and is not a medical diagnosis. Stop if you feel sharp pain."*
-   - Red flag safety stop: Automatically pauses the workout if pain is 7+ or sharp pain is reported.
+   - Red flag safety stop: Automatically pauses the workout if pain reaches the stop threshold (default 5, configurable by therapist) or sharp pain is reported.
    - Week-over-week Range of Motion (ROM) progression (e.g., *"Your shoulder lift is 12° higher than last week"*).
    - Adaptive plan rules adjusting next day's reps and holds based on form quality and pain.
 
-4. **100% Offline & Private**:
+4. **Privacy-First & Offline Resilience**:
    - Progressive Web App (PWA) with full offline precaching of models, WASM binaries, fonts, and inline SVG illustrations.
-   - Zero cloud requirement: Operates seamlessly in **Airplane Mode**.
-   - Privacy guarantee: Camera frames never leave volatile device memory. Only summary metrics are stored locally in IndexedDB.
+   - Offline exercise support: Complete workouts in Airplane Mode. All video stays in volatile memory and is never uploaded.
+   - Resilient data queue: Summary metrics store in local Dexie IndexedDB and sync to the clinic when back online.
 
-5. **Therapist Portal & Laptop Bridge**:
-   - Dual-role switch: Patient mode and Clinical Therapist mode.
-   - 12 realistic patient records under care with adherence and pain trajectories.
-   - Local network / QR code report sync to a clinic laptop bridge without internet.
+5. **Therapist Portal & Clinic Sync**:
+   - Dual-role switch: Patient mode and Clinical Therapist mode (secured with clinic passcode, default `CALM2026` in demo mode if unset).
+   - Real-time clinical view of patient adherence, pain trajectories, and range of motion.
+   - Authenticated REST API (`/api/*`) with JWT bearer authentication, rate limiting, and optional MongoDB Atlas persistence (falling back to in-memory store in dev).
 
 ---
 
@@ -98,12 +98,12 @@ The server will start on local HTTPS:
 ## 📊 Live Metrics Panel (Judge & Dev Tool)
 
 During any active exercise session, **tap the "LIVE COACH" emerald badge** at the top of the screen to open the Live On-Device Metrics Panel:
-- **Frame Rate**: Real-time FPS (~30 FPS).
-- **Inference Time**: Latency in ms (~22 ms/frame).
-- **Hardware Delegate**: `GPU (WebGL)` or `CPU Fallback`.
-- **Network State**: `Offline (Airplane Mode)` vs `Local Wi-Fi`.
-- **Battery Level & Drain**: Live battery percentage read directly from the device.
-- **JS Heap Memory**: Volatile memory consumption (~12–42 MB).
+- **Frame Rate**: Real-time measured FPS from the animation loop.
+- **Inference Time**: Real-time measured MediaPipe inference latency in ms/frame.
+- **Hardware Delegate**: Detected runtime delegate (`GPU (WebGL)` or `CPU Fallback`).
+- **Network State**: Real-time network detection (`Offline` vs `Online`).
+- **Battery Level & State**: Live battery percentage read via the Battery Status API (where supported by browser).
+- **JS Heap Memory**: Real-time JS heap memory usage from `performance.memory` (where supported by Chromium).
 
 ---
 
@@ -124,9 +124,9 @@ During any active exercise session, **tap the "LIVE COACH" emerald badge** at th
    - Select your repository (`calm-motion-yoga`) and click **"Import"**.
    - Framework Preset will automatically detect **Vite**.
    - Expand **"Environment Variables"** and add:
-     - `CLINIC_ADMIN_PASSCODE` = `CALM2026`
-     - `JWT_SECRET` = `calm-motion-jwt-secret-xyz`
-     - `MONGODB_URI` = *(optional, paste your Atlas URI or leave empty to use in-memory store)*
+     - `CLINIC_ADMIN_PASSCODE` = `<your-secure-clinic-passcode>`
+     - `JWT_SECRET` = `<min-32-char-random-secret>`
+     - `MONGODB_URI` = `<your-mongodb-atlas-connection-string>`
    - Click **"Deploy"**. Future git pushes will automatically redeploy!
 
 ### Option 2: Drag & Drop Fallback (Netlify Drop)

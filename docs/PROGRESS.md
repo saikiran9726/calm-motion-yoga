@@ -10,7 +10,7 @@ A mobile-first Yoga + Physiotherapy web application with on-device Live Motion C
 - **Key Decisions Made:**
   - **Framework:** React 18 with TypeScript strict mode, Vite, and React Router v6.
   - **Styling:** Tailwind CSS configured with exact "Calm Motion" tokens (#123B35 Deep Forest, #DDEBE4 Soft Sage, #F7F8F5 Off White, #E9DFCF Warm Sand, #E7E3F3 Muted Lavender, #E9A99A Soft Coral, #17201D Primary Text, #69736F Secondary Text), 24px card radius, 16px button/input radius.
-  - **Typography:** Self-hosted `@fontsource/manrope` (weights 400, 500, 600, 700) bundled locally. 100% offline; zero CDN dependencies.
+  - **Typography:** Self-hosted `@fontsource/manrope` (weights 400, 500, 600, 700) bundled locally; zero CDN dependencies.
   - **Local Persistence:** Dexie IndexedDB client set up for offline session tracking and pain logs.
   - **Motion & Accessibility:** Framer Motion transitions with calm easing (`cubic-bezier(0.16, 1, 0.3, 1)`) and automatic `prefers-reduced-motion` detection.
   - **Internationalization:** i18next initialized with English, Hindi (हिन्दी), and Telugu (తెలుగు) with dynamic in-app switching.
@@ -19,7 +19,7 @@ A mobile-first Yoga + Physiotherapy web application with on-device Live Motion C
 ---
 
 ## Phase 1: Patient-Facing Screens & Offline Experience
-- **Status:** Complete (Zero build errors, 100% offline seed data, verified at 390x844)
+- **Status:** Complete (Zero build errors, bundled offline seed data, verified at 390x844)
 - **Deliverables & Features Built:**
   1. **Onboarding (`/onboarding`):**
      - Step 1: Language selection (English, Hindi, Telugu) with large interactive cards.
@@ -115,11 +115,55 @@ A mobile-first Yoga + Physiotherapy web application with on-device Live Motion C
        - **Compact Android / iPhone**: `360 x 800` -> Zero horizontal overflow.
        - **Standard iPhone**: `390 x 844` -> Zero horizontal overflow.
        - **Large Android (Pixel / Galaxy)**: `412 x 915` -> Zero horizontal overflow.
-  5. **Live Hardware Metrics Panel:**
-     - Integrated `DevMetricsModal.tsx` accessible via the "LIVE COACH" emerald badge.
-     - Live hardware readings: Frame Rate (29.8 FPS), Inference Latency (22 ms/frame), GPU WebGL acceleration delegate, Battery percentage & charging status, JS Heap memory footprint, and Network State (Offline/Local Wi-Fi).
+  5. **Hardware Metrics Panel:**
+      - Integrated `DevMetricsModal.tsx` accessible via the "LIVE COACH" emerald badge.
+      - *(Historical note: Originally displayed mocked metrics like 29.8 FPS and 22ms. Updated in Phase 3 of the audit to display live-measured FPS, actual inference latency, detected delegate, and real system values).*
   6. **Hackathon Documentation Package:**
-     - `README.md`: Complete beginner-friendly setup, mobile installation guide, pose engine architecture, and limitations.
-     - `DEMO.md`: 3-minute hackathon demo script for judges with step-by-step airplane mode walkthrough and winning answers to the top 5 judge questions.
-     - `PITCH.md`: One-line tagline, 30-second elevator pitch, and 5 presentation slide bullets.
+      - Initial documentation was authored before live camera/backend was completed; thoroughly audited and brought to 100% truth in Phase 7.
 
+---
+
+## Engineering Audit & Real-System Overhaul (Phases 1 – 7)
+
+Following a comprehensive code audit, the system was refactored across seven distinct phases to replace mock components with real, secure, and offline-capable implementations.
+
+### Phase 1: Camera Stream Lifecycle & Permissions
+- **Problem Fixed:** `LiveSessionScreen` previously tied camera cleanup to session dependency changes (`currentRep`, `activeFeedback`, etc.), causing camera shutoffs mid-workout.
+- **Implementation:** Created pure `useCameraStream.ts` hook. Decoupled stream lifecycle from rep counter and UI state. Added proper error handling for permission denied, device in use, and not found. Added clean track release on unmount.
+
+### Phase 2: Real On-Device Pose Source (MediaPipe Vision)
+- **Problem Fixed:** Pose source previously replayed `mockPoseReplay.json` with no computer vision model running.
+- **Implementation:** Integrated `@mediapipe/tasks-vision`. Bundled `pose_landmarker_lite.task` and MediaPipe WASM runtime locally in `public/models/` and `public/mediapipe/wasm/` for offline execution. Created `MediaPipePoseSource.ts` producing real 33-landmark keypoints. Retained `MockPoseSource` as an explicit test option.
+
+### Phase 3: Real Exercise Engine & Removal of Fake Values
+- **Problem Fixed:** Angles, reps, and scores were previously hardcoded or tied to mock frames. Metrics panel displayed hardcoded numbers.
+- **Implementation:**
+  - Built pure computational engine in `src/engine/exercises/` (`geometry.ts`, `rules.ts`, `repCounter.ts`, `holdAccumulator.ts`, `feedbackArbiter.ts`).
+  - Added Vitest unit test suite with 26 automated tests passing across angle math, rep counting, and debounced arbitration.
+  - Replaced hardcoded values in `DevMetricsModal.tsx` with live-measured FPS, actual inference ms, live Battery API readings, and `performance.memory` tracking.
+
+### Phase 4: Backend Security Overhaul (`/api`)
+- **Problem Fixed:** Endpoints lacked authentication; `JWT_SECRET` was unused; clinic and patient endpoints were completely open.
+- **Implementation:**
+  - Implemented HMAC-SHA256 JWT tokens with distinct roles (`clinicToken` and `patientToken`).
+  - Added rate limiting and input validation schemas using Zod.
+  - Implemented MongoDB Atlas database driver with seamless in-memory fallback for local development.
+
+### Phase 5: Patient App Wiring & Clinic Program Sync
+- **Problem Fixed:** Client used hardcoded patient ID `'patient-ananya'` and clinic `'CALM01'`; therapist program changes in `/clinic` never affected the patient app.
+- **Implementation:**
+  - Implemented dynamic patient identity generation (`getPatientIdentity()`) stored in Dexie.
+  - Added clinic join and leave controls in `ProfileScreen.tsx` calling `/api/patient/join`.
+  - Wired `fetchProgram()` to load the therapist's prescribed exercises, target ROM, and patient-specific `painStopThreshold`.
+  - Added resilient IndexedDB outbox queue for reports that syncs automatically when connection is restored.
+
+### Phase 6: PWA & Offline Precaching
+- **Problem Fixed:** `vite.config.ts` had references to missing PNG icons; Workbox 2MB cache limit failed to cache the 5.5MB MediaPipe model and WASM binaries; `/api/` requests were not excluded from service worker caching.
+- **Implementation:**
+  - Generated crisp PNG icons (`pwa-192x192.png`, `pwa-512x512.png`, `apple-touch-icon.png`) using `sharp`.
+  - Configured Workbox `maximumFileSizeToCacheInBytes: 25 * 1024 * 1024` and added `public/models/**` and `public/mediapipe/wasm/**` to glob patterns (66 precached entries).
+  - Verified offline behavior using automated headless Chrome test (`scripts/test-offline.cjs`).
+
+### Phase 7: Document & UI Truth Alignment
+- **Problem Fixed:** Documentation and UI copy contained exaggerated claims ("100% offline", "zero cloud", "QR code websocket bridge", invented 30 FPS / 22ms metrics, 7+ pain threshold).
+- **Implementation:** Audited every screen and document (`README.md`, `DEMO.md`, `PITCH.md`, `SUBMISSION.md`, `docs/QA.md`, `docs/PROGRESS.md`, `HomeScreen`, `OnboardingScreen`, `AboutScreen`, `DesignSystemScreen`, and i18n locales). Standardized privacy wording, documented real test evidence, added 9-step physical device test checklist, and eliminated all fake claims.

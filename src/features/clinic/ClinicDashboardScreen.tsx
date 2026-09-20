@@ -55,11 +55,14 @@ export const ClinicDashboardScreen: React.FC = () => {
   const { addToast } = useAppStore();
 
   // Auth State
+  const [clinicToken, setClinicToken] = useState<string | null>(() => {
+    return sessionStorage.getItem('clinic_jwt');
+  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('clinic_auth') === 'true';
+    return !!sessionStorage.getItem('clinic_jwt');
   });
   const [clinicCodeInput, setClinicCodeInput] = useState<string>('CALM01');
-  const [passcodeInput, setPasscodeInput] = useState<string>('CALM2026');
+  const [passcodeInput, setPasscodeInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
 
   // Dashboard Data
@@ -85,6 +88,22 @@ export const ClinicDashboardScreen: React.FC = () => {
   const lastReportCount = useRef<number>(0);
   const pollTimer = useRef<any>(null);
 
+  const handleUnauthorized = () => {
+    sessionStorage.removeItem('clinic_jwt');
+    localStorage.removeItem('clinic_auth');
+    setClinicToken(null);
+    setIsAuthenticated(false);
+    setAuthError('Session expired or unauthorized. Please sign in again.');
+  };
+
+  const getAuthHeaders = () => {
+    const token = clinicToken || sessionStorage.getItem('clinic_jwt');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   // Handle Passcode Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,24 +118,38 @@ export const ClinicDashboardScreen: React.FC = () => {
         }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.success && data.token) {
+        sessionStorage.setItem('clinic_jwt', data.token);
+        setClinicToken(data.token);
         setIsAuthenticated(true);
         localStorage.setItem('clinic_auth', 'true');
         localStorage.setItem('clinic_code', clinicCodeInput.trim().toUpperCase());
-        fetchPatients(clinicCodeInput.trim().toUpperCase());
+        fetchPatients(data.token);
       } else {
         setAuthError(data.error || 'Invalid passcode or clinic code');
       }
     } catch {
-      setAuthError('Connection error. Falling back to local demo authorization.');
-      setIsAuthenticated(true);
+      setAuthError('Unable to connect to the clinic server. Please check your network.');
     }
   };
 
   // Fetch Patients & Check for New Reports
-  const fetchPatients = async (code: string) => {
+  const fetchPatients = async (tokenOverride?: string) => {
+    const token = tokenOverride || clinicToken || sessionStorage.getItem('clinic_jwt');
+    if (!token) return;
+
     try {
-      const res = await fetch(`/api/clinic/patients?clinicCode=${code}`);
+      const res = await fetch('/api/clinic/patients', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         setPatients(data.patients || []);
@@ -130,7 +163,7 @@ export const ClinicDashboardScreen: React.FC = () => {
           });
           // Refresh selected patient data
           if (selectedPatient) {
-            fetchPatientDetail(selectedPatient.id, code);
+            fetchPatientDetail(selectedPatient.id);
           }
         }
         lastReportCount.current = data.recentReportsCount || 0;
@@ -138,7 +171,7 @@ export const ClinicDashboardScreen: React.FC = () => {
         // Auto-select first patient if none selected
         if (!selectedPatient && data.patients?.length > 0) {
           setSelectedPatient(data.patients[0]);
-          fetchPatientDetail(data.patients[0].id, code);
+          fetchPatientDetail(data.patients[0].id);
         }
       }
     } catch (e) {
@@ -146,9 +179,17 @@ export const ClinicDashboardScreen: React.FC = () => {
     }
   };
 
-  const fetchPatientDetail = async (patientId: string, code: string) => {
+  const fetchPatientDetail = async (patientId: string) => {
     try {
-      const res = await fetch(`/api/clinic/patient?patientId=${patientId}&clinicCode=${code}`);
+      const res = await fetch(`/api/clinic/patient?patientId=${patientId}`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         if (data.patient) setSelectedPatient(data.patient);
@@ -170,17 +211,16 @@ export const ClinicDashboardScreen: React.FC = () => {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const code = localStorage.getItem('clinic_code') || clinicCodeInput.trim().toUpperCase() || 'CALM01';
-    fetchPatients(code);
+    fetchPatients();
 
     pollTimer.current = setInterval(() => {
-      fetchPatients(code);
+      fetchPatients();
     }, 5000);
 
     return () => {
       if (pollTimer.current) clearInterval(pollTimer.current);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, clinicToken]);
 
   // Load Demo Data
   const handleLoadDemo = async () => {
@@ -188,16 +228,25 @@ export const ClinicDashboardScreen: React.FC = () => {
     try {
       const res = await fetch('/api/clinic/seed', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ clinicCode: code }),
       });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
       if (res.ok) {
         addToast({
           title: 'Demo dataset loaded',
           description: 'Re-seeded clinic patient cohort, reports, and recovery metrics.',
           type: 'success',
         });
-        fetchPatients(code);
+        fetchPatients();
+      } else {
+        const err = await res.json();
+        addToast({ title: err.error || 'Failed to load demo data', type: 'warning' });
       }
     } catch {
       addToast({ title: 'Failed to load demo data', type: 'warning' });
@@ -207,14 +256,12 @@ export const ClinicDashboardScreen: React.FC = () => {
   // Save Adjusted Program
   const handleSaveProgram = async () => {
     if (!selectedPatient) return;
-    const code = localStorage.getItem('clinic_code') || 'CALM01';
     try {
       const res = await fetch('/api/clinic/program', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           patientId: selectedPatient.id,
-          clinicCode: code,
           programName: selectedPatient.condition,
           maxPainThreshold: adjustedPain,
           targetRom: adjustedRom,
@@ -222,6 +269,12 @@ export const ClinicDashboardScreen: React.FC = () => {
           guidanceNotes: guidanceNoteInput,
         }),
       });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
       if (res.ok) {
         addToast({
           title: 'Protocol updated',
@@ -229,7 +282,7 @@ export const ClinicDashboardScreen: React.FC = () => {
           type: 'success',
         });
         setAdjustModalOpen(false);
-        fetchPatientDetail(selectedPatient.id, code);
+        fetchPatientDetail(selectedPatient.id);
       }
     } catch {
       addToast({ title: 'Update failed', type: 'warning' });
@@ -240,22 +293,26 @@ export const ClinicDashboardScreen: React.FC = () => {
   const handleAddNote = async () => {
     if (!newNoteText.trim() || !selectedPatient) return;
     setIsSubmittingNote(true);
-    const code = localStorage.getItem('clinic_code') || 'CALM01';
     try {
       const res = await fetch('/api/clinic/notes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           patientId: selectedPatient.id,
-          clinicCode: code,
           therapistName: 'Dr. Anita Desai, PT',
           content: newNoteText.trim(),
         }),
       });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
       if (res.ok) {
         setNewNoteText('');
         addToast({ title: 'Clinical note saved', type: 'success' });
-        fetchPatientDetail(selectedPatient.id, code);
+        fetchPatientDetail(selectedPatient.id);
       }
     } finally {
       setIsSubmittingNote(false);
@@ -300,10 +357,15 @@ export const ClinicDashboardScreen: React.FC = () => {
                 type="password"
                 value={passcodeInput}
                 onChange={(e) => setPasscodeInput(e.target.value)}
-                placeholder="CALM2026"
+                placeholder="Enter clinic passcode"
                 className="w-full h-12 px-3.5 rounded-input border border-border-subtle bg-white text-body text-primary focus:outline-none focus:border-forest"
                 required
               />
+              {import.meta.env.VITE_DEMO_MODE === 'true' && (
+                <p className="text-[11px] text-forest/70 font-mono mt-1">
+                  Demo credentials: Code <span className="font-bold">CALM01</span> / Passcode <span className="font-bold">CALM2026</span>
+                </p>
+              )}
             </div>
 
             {authError && (
@@ -317,10 +379,12 @@ export const ClinicDashboardScreen: React.FC = () => {
             </Button>
           </form>
 
-          <div className="pt-2 text-center text-metadata text-secondary border-t border-border-subtle">
-            <p>Demo Passcode: <span className="font-mono font-bold text-forest">CALM2026</span></p>
-            <p className="mt-0.5">Clinic Code: <span className="font-mono font-bold text-forest">CALM01</span></p>
-          </div>
+          {import.meta.env.VITE_DEMO_MODE === 'true' && (
+            <div className="pt-2 text-center text-metadata text-secondary border-t border-border-subtle">
+              <p>Demo Passcode: <span className="font-mono font-bold text-forest">CALM2026</span></p>
+              <p className="mt-0.5">Clinic Code: <span className="font-mono font-bold text-forest">CALM01</span></p>
+            </div>
+          )}
         </Card>
       </div>
     );
@@ -391,8 +455,7 @@ export const ClinicDashboardScreen: React.FC = () => {
                 interactive
                 onClick={() => {
                   setSelectedPatient(p);
-                  const code = localStorage.getItem('clinic_code') || 'CALM01';
-                  fetchPatientDetail(p.id, code);
+                  fetchPatientDetail(p.id);
                 }}
                 className={`p-4 transition-all cursor-pointer ${
                   isSelected

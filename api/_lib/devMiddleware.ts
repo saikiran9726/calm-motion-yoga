@@ -84,6 +84,10 @@ export function devApiMiddleware(): Connect.NextHandleFunction {
         const mod = await import('../patient/delete-data');
         return await mod.default(reqExtended, resExtended);
       }
+      if (pathname === '/api/patient/program') {
+        const mod = await import('../patient/program');
+        return await mod.default(reqExtended, resExtended);
+      }
 
       return resExtended.status(404).json({ error: 'Endpoint not found: ' + pathname });
     } catch (err: any) {

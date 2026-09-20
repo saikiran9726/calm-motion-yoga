@@ -5,12 +5,14 @@ export interface SkeletonCanvasProps {
   keypoints: PoseKeypoint[];
   highlightJoint?: string | null;
   className?: string;
+  mirrored?: boolean;
 }
 
 export const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({
   keypoints,
   highlightJoint,
   className = 'w-full h-full',
+  mirrored = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -34,10 +36,11 @@ export const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({
 
     if (!keypoints || keypoints.length === 0) return;
 
-    // Map keypoints by name
+    // Map keypoints by name (mirrored if front camera)
     const kpMap = new Map<string, { x: number; y: number }>();
     keypoints.forEach((k) => {
-      kpMap.set(k.name, { x: k.x * w, y: k.y * h });
+      const xNorm = mirrored ? 1 - k.x : k.x;
+      kpMap.set(k.name, { x: xNorm * w, y: k.y * h });
     });
 
     const drawLine = (fromName: string, toName: string, strokeColor = 'rgba(221, 235, 228, 0.55)', lineWidth = 2.5) => {

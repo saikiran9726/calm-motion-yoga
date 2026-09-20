@@ -43,7 +43,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   isOnboarded: true, // Default to true so standard tabs can be viewed, but accessible via /onboarding
   setIsOnboarded: (val) => set({ isOnboarded: val }),
-  userName: 'Ananya',
+  userName: import.meta.env.VITE_DEMO_MODE === 'true' ? 'Ananya' : '',
   setUserName: (name) => set({ userName: name }),
   userGoal: 'both',
   setUserGoal: (goal) => set({ userGoal: goal }),

@@ -16,6 +16,7 @@ import { PoseSourceState } from '@/engine/pose/poseSource';
 
 export interface LiveStateOverlayProps {
   state: PoseSourceState;
+  errorMessage?: string | null;
   onResume?: () => void;
   onEndSession?: () => void;
   onRetry?: () => void;
@@ -24,6 +25,7 @@ export interface LiveStateOverlayProps {
 
 export const LiveStateOverlay: React.FC<LiveStateOverlayProps> = ({
   state,
+  errorMessage,
   onResume,
   onEndSession,
   onRetry,
@@ -124,7 +126,7 @@ export const LiveStateOverlay: React.FC<LiveStateOverlayProps> = ({
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
           <div>
-            <h3 className="text-heading font-bold text-white">Preparing Motion Coach</h3>
+            <h3 className="text-heading font-bold text-white">Loading motion model...</h3>
             <p className="text-caption text-sage/80 mt-1">
               Loading on-device geometric tracking. Everything runs 100% private in memory.
             </p>
@@ -161,7 +163,7 @@ export const LiveStateOverlay: React.FC<LiveStateOverlayProps> = ({
             </div>
             <h3 className="text-heading font-bold text-white">Camera Access Denied</h3>
             <p className="text-caption text-sage/80 mt-1">
-              Camera is required for live angle corrections.
+              {errorMessage || 'Camera is required for live angle corrections.'}
             </p>
           </div>
 
@@ -176,12 +178,12 @@ export const LiveStateOverlay: React.FC<LiveStateOverlayProps> = ({
             </ol>
           </div>
 
-          {onRetry && (
+          {(onRetry || onGrantPermission) && (
             <Button
               variant="coral"
               size="full"
               leftIcon={<RotateCcw className="w-4 h-4" />}
-              onClick={onRetry}
+              onClick={onRetry || onGrantPermission}
             >
               Retry Camera Connection
             </Button>
@@ -198,11 +200,11 @@ export const LiveStateOverlay: React.FC<LiveStateOverlayProps> = ({
           <div>
             <h3 className="text-heading font-bold text-white">No Camera Detected</h3>
             <p className="text-caption text-sage/80 mt-1">
-              We couldn't connect to a front-facing video sensor on this device.
+              {errorMessage || "We couldn't connect to a front-facing video sensor on this device."}
             </p>
           </div>
-          {onRetry && (
-            <Button variant="secondary" size="full" onClick={onRetry}>
+          {(onRetry || onGrantPermission) && (
+            <Button variant="secondary" size="full" onClick={onRetry || onGrantPermission}>
               Check Again
             </Button>
           )}
@@ -218,15 +220,15 @@ export const LiveStateOverlay: React.FC<LiveStateOverlayProps> = ({
           <div>
             <h3 className="text-heading font-bold text-white">Motion Coach Paused</h3>
             <p className="text-caption text-sage/80 mt-1">
-              We encountered a temporary interruption with the sensor stream.
+              {errorMessage || 'We encountered a temporary interruption with the sensor stream.'}
             </p>
           </div>
-          {onRetry && (
+          {(onRetry || onGrantPermission) && (
             <Button
               variant="coral"
               size="full"
               leftIcon={<RotateCcw className="w-4 h-4" />}
-              onClick={onRetry}
+              onClick={onRetry || onGrantPermission}
             >
               Restart Tracking
             </Button>

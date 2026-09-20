@@ -514,7 +514,7 @@ export const DesignSystemScreen: React.FC = () => {
             >
               <div className="space-y-3">
                 <p className="text-caption text-secondary">
-                  The on-device pose model evaluates 33 skeletal keypoints at 30 fps without cloud offloading.
+                  The on-device pose model evaluates 33 skeletal keypoints in real time without video leaving the device.
                 </p>
                 <div className="p-3 bg-sage/30 rounded-input border border-sage text-caption-medium text-forest">
                   Joint angle tolerance: ±8° for warrior postures

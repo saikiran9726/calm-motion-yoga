@@ -1,37 +1,52 @@
-import { NoteCreateSchema } from '../_lib/validation';
-import { dbService } from '../_lib/db';
+import { NoteCreateSchema, PatientIdQuerySchema } from "../_lib/validation";
+import { dbService } from "../_lib/db";
+import { requireClinic } from "../_lib/auth";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (!checkServerConfig(res)) return;
+  if (handleCors(req, res)) return;
+  if (!ensureMethod(req, res, ["GET", "POST"])) return;
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  const auth = await requireClinic(req, res);
+  if (!auth) return;
 
-  if (req.method === 'GET') {
-    const patientId = req.query.patientId as string;
-    if (!patientId) return res.status(400).json({ error: 'patientId is required' });
-    const notes = await dbService.getNotes(patientId);
+  const clinicCode = auth.clinicCode;
+
+  if (req.method === "GET") {
+    const parse = PatientIdQuerySchema.safeParse(req.query);
+    if (!parse.success) return res.status(400).json({ error: "Invalid patientId" });
+
+    const patient = await dbService.getPatient(parse.data.patientId);
+    if (!patient || patient.clinicCode !== clinicCode) {
+      return res.status(404).json({ error: "Patient not found in clinic" });
+    }
+
+    const notes = await dbService.getNotes(parse.data.patientId);
     return res.status(200).json({ success: true, notes });
   }
 
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     const parse = NoteCreateSchema.safeParse(req.body);
     if (!parse.success) {
-      return res.status(400).json({ error: 'Validation failed', details: parse.error.format() });
+      return res.status(400).json({ error: "Validation failed", details: parse.error.format() });
+    }
+
+    const patient = await dbService.getPatient(parse.data.patientId);
+    if (!patient || patient.clinicCode !== clinicCode) {
+      return res.status(404).json({ error: "Patient not found in clinic" });
     }
 
     const newNote = await dbService.addNote({
-      id: 'note-' + Date.now().toString(36),
+      id: "note-" + Date.now().toString(36),
       patientId: parse.data.patientId,
-      clinicCode: parse.data.clinicCode,
-      therapistName: parse.data.therapistName || 'Dr. Anita Desai, PT',
+      clinicCode,
+      therapistName: parse.data.therapistName || "Dr. Anita Desai, PT",
       content: parse.data.content,
-      date: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     });
 
     return res.status(201).json({ success: true, note: newNote });
   }
-
-  return res.status(405).json({ error: 'Method not allowed' });
 }
+

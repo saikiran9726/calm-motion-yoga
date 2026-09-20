@@ -1,4 +1,5 @@
 import mockData from '@/data/mockPoseReplay.json';
+import { MediaPipePoseSource } from './MediaPipePoseSource';
 
 export type PoseSourceState =
   | 'uninitialized'
@@ -52,6 +53,13 @@ export interface IPoseSource {
   setState(state: PoseSourceState): void;
   onFrame(listener: (frame: LivePoseFrame) => void): () => void;
   onStateChange(listener: (state: PoseSourceState) => void): () => void;
+  attachVideo(el: HTMLVideoElement): void;
+  dispose(): void;
+  getMetrics(): {
+    fps: number | null;
+    inferenceMs: number | null;
+    delegate: 'GPU' | 'CPU' | null;
+  };
 }
 
 export class MockPoseSource implements IPoseSource {
@@ -60,9 +68,27 @@ export class MockPoseSource implements IPoseSource {
   private stateListeners: Set<(state: PoseSourceState) => void> = new Set();
   private timer: number | null = null;
   private currentFrameIndex: number = 0;
-  private repCounter: number = 8;
+  private repCounter: number = 0;
   private totalReps: number = 10;
   private simulatedTime: number = 0;
+
+  attachVideo(_el: HTMLVideoElement): void {
+    // No-op in replay mode
+  }
+
+  dispose(): void {
+    this.stop();
+    this.frameListeners.clear();
+    this.stateListeners.clear();
+  }
+
+  getMetrics(): { fps: number | null; inferenceMs: number | null; delegate: 'GPU' | 'CPU' | null } {
+    return {
+      fps: null,
+      inferenceMs: null,
+      delegate: null,
+    };
+  }
 
   async start(): Promise<void> {
     this.setState('ready');
@@ -144,5 +170,12 @@ export class MockPoseSource implements IPoseSource {
   }
 }
 
-// Export singleton instance for easy drop-in replacement
-export const activePoseSource: IPoseSource = new MockPoseSource();
+/**
+ * Factory to instantiate the appropriate pose source
+ */
+export function createPoseSource(mode: 'camera' | 'replay'): IPoseSource {
+  if (mode === 'camera') {
+    return new MediaPipePoseSource();
+  }
+  return new MockPoseSource();
+}
