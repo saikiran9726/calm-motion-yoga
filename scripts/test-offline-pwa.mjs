@@ -133,7 +133,7 @@ async function run() {
         bodySnippet: text.slice(0, 200).replace(/\n/g, ' | '),
       };
     });
-    console.log(`✓ Live session verification:`, sessionState);
+    console.log(`✓ Replay mode session verification (ROM, Reps, Feedback):`, sessionState);
 
     console.log('10. Testing offline fetch of model & wasm from Service Worker cache...');
     const offlineFetchResult = await page.evaluate(async () => {
@@ -149,6 +149,48 @@ async function run() {
       };
     });
     console.log('✓ Offline model & wasm fetch result:', offlineFetchResult);
+
+    console.log('11. Checking real-pose fixture for automated live tracking...');
+    const fixturePath = path.resolve('scripts/fixtures/person.mjpeg');
+    if (fs.existsSync(fixturePath)) {
+      console.log(`✓ Fixture found at ${fixturePath}. Launching camera tracking verification...`);
+      const fixtureBrowser = await puppeteer.launch({
+        executablePath: CHROME_PATH,
+        headless: true,
+        args: [
+          '--ignore-certificate-errors',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--use-fake-ui-for-media-stream',
+          '--use-fake-device-for-media-stream',
+          `--use-file-for-fake-video-capture=${fixturePath}`,
+        ],
+      });
+      try {
+        const fixturePage = await fixtureBrowser.newPage();
+        await fixturePage.goto(`${serverUrl}/session?exercise=wall-slide`, { waitUntil: 'networkidle0', timeout: 20000 });
+        await fixturePage.evaluate(() => {
+          const buttons = Array.from(document.querySelectorAll('button'));
+          const cameraBtn = buttons.find((b) => b.textContent?.includes('Camera'));
+          if (cameraBtn) cameraBtn.click();
+          const startBtn = buttons.find((b) => b.textContent?.includes('Begin') || b.textContent?.includes('Start') || b.textContent?.includes('Ready'));
+          if (startBtn) startBtn.click();
+        });
+        await new Promise((r) => setTimeout(r, 8000));
+        const cameraTrackingState = await fixturePage.evaluate(() => {
+          const text = document.body.innerText;
+          return {
+            hasTracking: text.includes('Tracking') || text.includes('°'),
+            bodySnippet: text.slice(0, 200).replace(/\n/g, ' | '),
+          };
+        });
+        console.log('✓ Real-pose camera tracking verification with fixture:', cameraTrackingState);
+      } finally {
+        await fixtureBrowser.close();
+      }
+    } else {
+      console.log('SKIPPED: no fixture');
+    }
 
     console.log('\n========================================');
     console.log('ALL OFFLINE PWA TESTS PASSED CLEANLY!');

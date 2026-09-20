@@ -25,7 +25,8 @@
       "fri": "F",
       "sat": "S",
       "sun": "S"
-    }
+    },
+    "askAdminPasscode": "Ask your clinic administrator for the passcode."
   },
   "explore": {
     "title": "Explore Practices",

@@ -1,5 +1,5 @@
 import { MongoClient, Db } from "mongodb";
-import { hashPasscode, verifyPasscode, hashToken } from "./crypto";
+import { hashPasscode, verifyPasscode, hashToken, generatePatientToken } from "./crypto";
 
 export interface ClinicRecord {
   clinicCode: string;
@@ -40,6 +40,7 @@ export interface SessionReportRecord {
   painInterrupted: boolean;
   timestamp: number;
   mode?: "hold" | "reps";
+  painThreshold?: number;
 }
 
 export interface ProgramRecord {
@@ -123,7 +124,7 @@ export async function seedMemoryStore(forceReset = false): Promise<void> {
       painTrend: 2,
       lastSession: "Today, 9:30 AM",
       createdAt: new Date(Date.now() - 21 * 86400000).toISOString(),
-      tokenHash: hashToken("demo-patient-token-ananya"),
+      tokenHash: hashToken(generatePatientToken()),
     },
     {
       id: "patient-arjun",
@@ -137,7 +138,7 @@ export async function seedMemoryStore(forceReset = false): Promise<void> {
       painTrend: 2,
       lastSession: "Today, 8:15 AM",
       createdAt: new Date(Date.now() - 18 * 86400000).toISOString(),
-      tokenHash: hashToken("demo-patient-token-arjun"),
+      tokenHash: hashToken(generatePatientToken()),
     },
     {
       id: "patient-priya",
@@ -151,7 +152,7 @@ export async function seedMemoryStore(forceReset = false): Promise<void> {
       painTrend: 5,
       lastSession: "3 days ago",
       createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
-      tokenHash: hashToken("demo-patient-token-priya"),
+      tokenHash: hashToken(generatePatientToken()),
     },
     {
       id: "patient-rahul",
@@ -165,7 +166,7 @@ export async function seedMemoryStore(forceReset = false): Promise<void> {
       painTrend: 4,
       lastSession: "Yesterday, 5:15 PM",
       createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-      tokenHash: hashToken("demo-patient-token-rahul"),
+      tokenHash: hashToken(generatePatientToken()),
     },
   ];
 
@@ -200,11 +201,67 @@ export async function seedMemoryStore(forceReset = false): Promise<void> {
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
+let mongoTestDb: any = null;
+
+export function __setMongoForTests(fakeDb: any) {
+  mongoTestDb = fakeDb;
+  cachedDb = fakeDb;
+}
+
+export async function ensureDefaultClinic(mongo?: any): Promise<ClinicRecord | null> {
+  const db = mongo || (await getMongoDb());
+  if (!db) return null;
+
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+  const defaultPasscode =
+    process.env.CLINIC_ADMIN_PASSCODE ||
+    (isProd ? "" : "CALM2026");
+
+  if (!defaultPasscode) {
+    return null;
+  }
+
+  const clinicsCollection = db.collection("clinics");
+  const existing = await clinicsCollection.findOne({ clinicCode: DEFAULT_CLINIC_CODE });
+
+  if (!existing) {
+    const hashedPasscode = await hashPasscode(defaultPasscode);
+    const defaultDoc: ClinicRecord = {
+      clinicCode: DEFAULT_CLINIC_CODE,
+      name: "Apex Physical Therapy Clinic",
+      passcodeHash: hashedPasscode,
+      createdAt: new Date().toISOString(),
+    };
+    await clinicsCollection.updateOne(
+      { clinicCode: DEFAULT_CLINIC_CODE },
+      { $setOnInsert: defaultDoc },
+      { upsert: true }
+    );
+    return await clinicsCollection.findOne({ clinicCode: DEFAULT_CLINIC_CODE });
+  }
+
+  // If it does exist and process.env.CLINIC_ADMIN_PASSCODE is set, update passcode hash if it differs
+  if (process.env.CLINIC_ADMIN_PASSCODE && existing.passcodeHash) {
+    const matches = await verifyPasscode(process.env.CLINIC_ADMIN_PASSCODE, existing.passcodeHash);
+    if (!matches) {
+      const newHash = await hashPasscode(process.env.CLINIC_ADMIN_PASSCODE);
+      await clinicsCollection.updateOne(
+        { clinicCode: DEFAULT_CLINIC_CODE },
+        { $set: { passcodeHash: newHash } }
+      );
+      existing.passcodeHash = newHash;
+    }
+  }
+
+  return existing;
+}
 
 export async function getMongoDb(): Promise<Db | null> {
+  if (mongoTestDb) return mongoTestDb;
   const uri = process.env.MONGODB_URI;
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
   if (!uri) {
-    if (process.env.NODE_ENV === "production") {
+    if (isProd) {
       throw new Error("MONGODB_URI is required in production environment");
     }
     return null;
@@ -221,7 +278,7 @@ export async function getMongoDb(): Promise<Db | null> {
     cachedDb = client.db("calm_motion");
     return cachedDb;
   } catch (err) {
-    if (process.env.NODE_ENV === "production") {
+    if (isProd) {
       throw err;
     }
     console.warn("MongoDB Atlas connection failed, falling back to in-memory store in dev:", err);
@@ -234,6 +291,9 @@ export const dbService = {
     const code = clinicCode.toUpperCase();
     const mongo = await getMongoDb();
     if (mongo) {
+      if (code === DEFAULT_CLINIC_CODE) {
+        await ensureDefaultClinic(mongo);
+      }
       return mongo.collection<ClinicRecord>("clinics").findOne({ clinicCode: code });
     }
     await seedMemoryStore();
@@ -248,6 +308,9 @@ export const dbService = {
     const mongo = await getMongoDb();
 
     if (mongo) {
+      if (code === DEFAULT_CLINIC_CODE) {
+        await ensureDefaultClinic(mongo);
+      }
       const existing = await mongo.collection<ClinicRecord>("clinics").findOne({ clinicCode: code });
       if (!existing || !existing.passcodeHash) {
         throw new Error("Invalid clinic credentials");
@@ -262,7 +325,8 @@ export const dbService = {
       };
     }
 
-    if (process.env.NODE_ENV === "production") {
+    const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+    if (isProd) {
       throw new Error("Database connection required in production");
     }
 
@@ -486,7 +550,11 @@ export const dbService = {
         },
         { upsert: true }
       );
-      const list = Array.from(globalMemStore.patients.values()).map((p) => ({ ...p, clinicCode: code }));
+      const list = Array.from(globalMemStore.patients.values()).map((p) => ({
+        ...p,
+        clinicCode: code,
+        tokenHash: hashToken(generatePatientToken()),
+      }));
       for (const p of list) {
         await mongo.collection("patients").updateOne({ id: p.id }, { $set: p }, { upsert: true });
       }

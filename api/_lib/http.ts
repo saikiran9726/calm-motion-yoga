@@ -1,12 +1,48 @@
+export function isProductionEnv(): boolean {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+}
+
 export function checkServerConfig(res: any): boolean {
-  if (process.env.NODE_ENV === "production") {
+  if (isProductionEnv()) {
     const jwtSecret = process.env.JWT_SECRET;
     const passcode = process.env.CLINIC_ADMIN_PASSCODE;
     const mongoUri = process.env.MONGODB_URI;
 
-    if (!jwtSecret || jwtSecret.length < 32 || !passcode || !mongoUri) {
+    if (
+      !jwtSecret ||
+      jwtSecret.length < 32 ||
+      jwtSecret.toLowerCase().startsWith("change-me") ||
+      jwtSecret === "change-me-in-production"
+    ) {
+      console.error("FATAL: JWT_SECRET must be changed in production. Current value is placeholder.");
       res.status(503).json({ error: "Server not configured" });
       return false;
+    }
+
+    if (
+      !passcode ||
+      passcode.length < 8 ||
+      passcode.toLowerCase().startsWith("change-me") ||
+      passcode === "CALM2026"
+    ) {
+      console.error("FATAL: CLINIC_ADMIN_PASSCODE must be changed in production. Current value is placeholder or too short.");
+      res.status(503).json({ error: "Server not configured" });
+      return false;
+    }
+
+    if (!mongoUri) {
+      console.error("FATAL: MONGODB_URI is required in production environment.");
+      res.status(503).json({ error: "Server not configured" });
+      return false;
+    }
+  } else {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (jwtSecret && jwtSecret.toLowerCase().startsWith("change-me")) {
+      console.warn("WARNING: JWT_SECRET is set to a development placeholder.");
+    }
+    const passcode = process.env.CLINIC_ADMIN_PASSCODE;
+    if (passcode && (passcode.toLowerCase().startsWith("change-me") || passcode === "CALM2026")) {
+      console.warn("WARNING: CLINIC_ADMIN_PASSCODE is set to default/placeholder in non-production mode.");
     }
   }
   return true;

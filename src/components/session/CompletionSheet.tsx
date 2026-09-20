@@ -8,6 +8,7 @@ export interface CompletionSheetProps {
   totalReps: number;
   mode?: 'hold' | 'reps';
   peakRom?: number;
+  accuracyScore?: number | null;
   formQuality?: 'Excellent' | 'Good' | 'Needs Attention';
   encouragementSentence?: string;
   painBefore?: number;
@@ -15,6 +16,7 @@ export interface CompletionSheetProps {
   painThreshold?: number;
   painInterrupted?: boolean;
   isSynced?: boolean;
+  simulated?: boolean;
   onDownloadPdf?: () => void;
   onNextExercise: () => void;
   onRepeat: () => void;
@@ -25,6 +27,7 @@ export const CompletionSheet: React.FC<CompletionSheetProps> = ({
   totalReps = 10,
   mode = 'hold',
   peakRom = 92,
+  accuracyScore,
   formQuality = 'Excellent',
   encouragementSentence = 'Your hip stability and shoulder balance were remarkably consistent throughout the movement.',
   painBefore = 2,
@@ -32,6 +35,7 @@ export const CompletionSheet: React.FC<CompletionSheetProps> = ({
   painThreshold,
   painInterrupted = false,
   isSynced = true,
+  simulated = false,
   onDownloadPdf,
   onNextExercise,
   onRepeat,
@@ -106,7 +110,9 @@ export const CompletionSheet: React.FC<CompletionSheetProps> = ({
             <span className="text-title font-bold text-forest block mt-0.5">
               {peakRom}°
             </span>
-            <span className="text-[10px] text-forest font-medium">{formQuality}</span>
+            <span className="text-[10px] text-forest font-medium">
+              {accuracyScore === null ? 'N/A' : formQuality}
+            </span>
           </div>
 
           <div className="p-3 bg-sand/30 rounded-card-sm border border-sand/50 text-center">
@@ -120,23 +126,43 @@ export const CompletionSheet: React.FC<CompletionSheetProps> = ({
           </div>
         </div>
 
+        {/* Simulated Demo Session Notice */}
+        {simulated && (
+          <div className="p-2.5 bg-sand/40 border border-sand/70 rounded-card-sm text-center">
+            <span className="text-metadata font-bold text-primary block">
+              Simulated demo session
+            </span>
+            <span className="text-[11px] text-secondary">
+              Recorded replay was used. This session is not synced to the clinic.
+            </span>
+          </div>
+        )}
+
         {/* Clinical Guidance / Encouragement Note */}
         <div className={`p-3.5 rounded-card-sm border text-caption leading-relaxed font-medium ${
           painInterrupted
             ? 'bg-coral-light/30 border-coral/40 text-primary'
+            : accuracyScore === null
+            ? 'bg-sand/40 border-sand/70 text-primary'
             : 'bg-sand/30 border-sand/60 text-primary'
         }`}>
-          "{encouragementSentence}"
+          "{accuracyScore === null
+            ? 'Not enough tracking data to score this session'
+            : encouragementSentence}"
         </div>
 
         {/* Sync Status Badge */}
         <div className="flex items-center justify-between text-metadata px-1 text-secondary">
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-forest" />
-            100% on-device edge AI
+            {simulated ? 'Recorded replay' : 'On-device camera'}
           </span>
           <span className="flex items-center gap-1 text-forest font-semibold">
-            {isSynced ? (
+            {simulated ? (
+              <span className="text-secondary font-medium">Demo simulation (not synced)</span>
+            ) : accuracyScore === null ? (
+              <span className="text-secondary font-medium">Not synced (insufficient frames)</span>
+            ) : isSynced ? (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 Clinic Synced

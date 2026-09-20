@@ -162,7 +162,7 @@ Following a comprehensive code audit, the system was refactored across seven dis
 - **Implementation:**
   - Generated crisp PNG icons (`pwa-192x192.png`, `pwa-512x512.png`, `apple-touch-icon.png`) using `sharp`.
   - Configured Workbox `maximumFileSizeToCacheInBytes: 25 * 1024 * 1024` and added `public/models/**` and `public/mediapipe/wasm/**` to glob patterns (66 precached entries).
-  - Verified offline behavior using automated headless Chrome test (`scripts/test-offline.cjs`).
+  - Verified offline behavior using automated headless Chrome test (`scripts/test-offline-pwa.mjs`).
 
 ### Phase 7: Document & UI Truth Alignment
 - **Problem Fixed:** Documentation and UI copy contained exaggerated claims ("100% offline", "zero cloud", "QR code websocket bridge", invented 30 FPS / 22ms metrics, 7+ pain threshold).

@@ -4,19 +4,61 @@ import { FormCheck } from './feedbackArbiter';
 
 function getKp(keypoints: PoseKeypoint[], name: string, fallbackIdx: number): Point2D | null {
   const found = keypoints.find((k) => k.name === name);
-  if (found && found.score >= 0.25) return found;
-  if (keypoints[fallbackIdx] && keypoints[fallbackIdx].score >= 0.25) return keypoints[fallbackIdx];
+  if (found && typeof found.score === 'number' && found.score >= 0.5) return found;
+  if (keypoints[fallbackIdx] && typeof keypoints[fallbackIdx].score === 'number' && keypoints[fallbackIdx].score >= 0.5) {
+    return keypoints[fallbackIdx];
+  }
   return null;
 }
 
 export interface ExerciseEvaluation {
   currentRom: number | null;
   formChecks: FormCheck[];
+  exercise?: 'warrior2' | 'wallslide';
+}
+
+/**
+ * Checks if all required anatomical categories for an exercise were evaluated
+ * without missing required joints.
+ */
+export function isEvaluationComplete(
+  evaluation: ExerciseEvaluation | null | undefined,
+  exerciseType?: 'warrior2' | 'wallslide'
+): boolean {
+  if (!evaluation || !evaluation.formChecks || evaluation.formChecks.length === 0) {
+    return false;
+  }
+
+  // Any failed visibility check means keypoint chains were out of frame
+  if (evaluation.formChecks.some((c) => c.category === 'visibility')) {
+    return false;
+  }
+
+  const ex = exerciseType || evaluation.exercise || (
+    evaluation.formChecks.some((c) => c.category === 'knee' || c.category === 'arm') ? 'warrior2' : 'wallslide'
+  );
+
+  const categories = new Set(evaluation.formChecks.map((c) => c.category));
+
+  if (ex === 'warrior2') {
+    const required: FormCheck['category'][] = ['knee', 'spine', 'shoulder', 'arm'];
+    return required.every((cat) => categories.has(cat));
+  }
+
+  if (ex === 'wallslide') {
+    const required: FormCheck['category'][] = ['spine', 'shoulder'];
+    return evaluation.currentRom !== null && required.every((cat) => categories.has(cat));
+  }
+
+  return true;
 }
 
 /**
  * Evaluates Warrior II (hold mode)
  * Key criteria:
+ * - Selected-side hip, knee, ankle required
+ * - Both shoulders and hips required
+ * - Both arms (shoulder, elbow, hip) required
  * - Front knee bent near 90° (70° - 110°)
  * - Torso upright over hips (lean <= 15°)
  * - Shoulders level (tilt <= 12°)
@@ -37,7 +79,16 @@ export function evaluateWarrior2(
   const lh = getKp(keypoints, 'left_hip', 23);
   const rh = getKp(keypoints, 'right_hip', 24);
 
+  const shoulder = getKp(keypoints, `${side}_shoulder`, side === 'left' ? 11 : 12);
+  const elbow = getKp(keypoints, `${side}_elbow`, side === 'left' ? 13 : 14);
+  const backSide = side === 'left' ? 'right' : 'left';
+  const otherHip = getKp(keypoints, `${backSide}_hip`, backSide === 'left' ? 23 : 24);
+  const otherShoulder = getKp(keypoints, `${backSide}_shoulder`, backSide === 'left' ? 11 : 12);
+  const otherElbow = getKp(keypoints, `${backSide}_elbow`, backSide === 'left' ? 13 : 14);
+
   let kneeAngle: number | null = null;
+
+  // 1. Required: selected-side hip, knee, ankle
   if (hip && knee && ankle) {
     kneeAngle = angle(hip, knee, ankle);
     if (kneeAngle > 112) {
@@ -68,8 +119,18 @@ export function evaluateWarrior2(
         category: 'knee',
       });
     }
+  } else {
+    checks.push({
+      id: 'warrior_visibility_leg',
+      passed: false,
+      priority: 0,
+      message: 'Move so your whole body is visible',
+      joint: `${side}_knee`,
+      category: 'visibility',
+    });
   }
 
+  // 2. Required: both shoulders and hips
   if (ls && rs && lh && rh) {
     const lean = torsoLean(ls, rs, lh, rh);
     if (lean > 15) {
@@ -112,16 +173,18 @@ export function evaluateWarrior2(
         category: 'shoulder',
       });
     }
+  } else {
+    checks.push({
+      id: 'warrior_visibility_torso',
+      passed: false,
+      priority: 0,
+      message: 'Move so your whole body is visible',
+      joint: null,
+      category: 'visibility',
+    });
   }
 
-  // Arms horizontal check
-  const shoulder = getKp(keypoints, `${side}_shoulder`, side === 'left' ? 11 : 12);
-  const elbow = getKp(keypoints, `${side}_elbow`, side === 'left' ? 13 : 14);
-  const backSide = side === 'left' ? 'right' : 'left';
-  const otherHip = getKp(keypoints, `${backSide}_hip`, backSide === 'left' ? 23 : 24);
-  const otherShoulder = getKp(keypoints, `${backSide}_shoulder`, backSide === 'left' ? 11 : 12);
-  const otherElbow = getKp(keypoints, `${backSide}_elbow`, backSide === 'left' ? 13 : 14);
-
+  // 3. Required: both arms
   if (hip && shoulder && elbow && otherHip && otherShoulder && otherElbow) {
     const frontArm = angle(hip, shoulder, elbow);
     const backArm = angle(otherHip, otherShoulder, otherElbow);
@@ -144,16 +207,28 @@ export function evaluateWarrior2(
         category: 'arm',
       });
     }
+  } else {
+    checks.push({
+      id: 'warrior_visibility_arms',
+      passed: false,
+      priority: 0,
+      message: 'Move so your whole body is visible',
+      joint: `${side}_elbow`,
+      category: 'visibility',
+    });
   }
 
   return {
     currentRom: kneeAngle,
     formChecks: checks,
+    exercise: 'warrior2',
   };
 }
 
 /**
  * Evaluates Wall Slide / Shoulder Raise (reps mode)
+ * - Required: selected-side shoulder, elbow, hip
+ * - Required: both shoulders and hips (for spine & shoulder checks)
  * - ROM = hip-shoulder-elbow angle on the side the user selected
  * - Spine neutral (torso lean <= 16°)
  * - Shoulders level / relaxed away from ears
@@ -171,6 +246,15 @@ export function evaluateWallSlide(
   let romAngle: number | null = null;
   if (hip && shoulder && elbow) {
     romAngle = angle(hip, shoulder, elbow);
+  } else {
+    checks.push({
+      id: 'wallslide_visibility_arm',
+      passed: false,
+      priority: 0,
+      message: 'Move so your whole body is visible',
+      joint: `${side}_shoulder`,
+      category: 'visibility',
+    });
   }
 
   const ls = getKp(keypoints, 'left_shoulder', 11);
@@ -220,10 +304,20 @@ export function evaluateWallSlide(
         category: 'shoulder',
       });
     }
+  } else {
+    checks.push({
+      id: 'wallslide_visibility_torso',
+      passed: false,
+      priority: 0,
+      message: 'Move so your whole body is visible',
+      joint: null,
+      category: 'visibility',
+    });
   }
 
   return {
     currentRom: romAngle,
     formChecks: checks,
+    exercise: 'wallslide',
   };
 }

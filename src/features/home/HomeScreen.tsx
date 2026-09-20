@@ -352,7 +352,13 @@ export const HomeScreen: React.FC = () => {
               <div>
                 <strong className="text-caption font-bold text-primary block">Supervision Clinic Portal (/clinic)</strong>
                 <p className="text-metadata text-secondary mt-0.5">
-                  Demo Passcode: <code className="font-mono font-bold text-forest">CALM2026</code>. Live 5s polling, patient cohort, program adjustment, and demo seed data.
+                  {import.meta.env.VITE_DEMO_MODE === "true" ? (
+                    <>
+                      Demo Passcode: <code className="font-mono font-bold text-forest">CALM2026</code>. Live 5s polling, patient cohort, program adjustment, and demo seed data.
+                    </>
+                  ) : (
+                    t("home.askAdminPasscode", "Ask your clinic administrator for the passcode.")
+                  )}
                 </p>
                 <div className="pt-2">
                   <Button

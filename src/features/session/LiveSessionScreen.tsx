@@ -44,6 +44,8 @@ import { useCameraStream } from '@/hooks/useCameraStream';
 import {
   evaluateWarrior2,
   evaluateWallSlide,
+  isEvaluationComplete,
+  shouldEvaluateFrame,
   arbitrateFeedback,
   FeedbackDebouncer,
   FeedbackOutput,
@@ -244,12 +246,23 @@ export const LiveSessionScreen: React.FC = () => {
 
     const totalFrames = totalFramesRef.current;
     const passedFrames = passedFramesRef.current;
-    const accuracyScore = totalFrames > 0
-      ? Math.round((passedFrames / totalFrames) * 100)
-      : (wasPainInterrupted ? 70 : 85);
+
+    let accuracyScore: number | null = null;
+    if (trackingMode === 'camera') {
+      if (totalFrames >= 30) {
+        accuracyScore = Math.round((passedFrames / totalFrames) * 100);
+      } else {
+        accuracyScore = null;
+      }
+    } else {
+      // Replay mode: compute from replay frames if sufficient
+      accuracyScore = totalFrames >= 30 ? Math.round((passedFrames / totalFrames) * 100) : null;
+    }
 
     const formQuality: 'Excellent' | 'Good' | 'Needs Attention' =
-      wasPainInterrupted || accuracyScore < 60
+      accuracyScore === null
+        ? 'Good'
+        : wasPainInterrupted || accuracyScore < 60
         ? 'Needs Attention'
         : accuracyScore >= 80
         ? 'Excellent'
@@ -269,12 +282,14 @@ export const LiveSessionScreen: React.FC = () => {
       repsCompleted: currentProgressRef.current,
       targetReps: targetUnitsRef.current,
       peakRom: peakRomRef.current ?? undefined,
+      accuracyScore,
       formQuality,
       painBefore: sessionPainBeforeRef.current,
       painAfter: finalPain,
       painThreshold,
       painInterrupted: wasPainInterrupted,
       mode: isHoldMode ? 'hold' : 'reps',
+      simulated: trackingMode === 'replay',
     };
 
     setCompletedReport(reportData);
@@ -284,7 +299,7 @@ export const LiveSessionScreen: React.FC = () => {
       reportId,
       date: new Date().toISOString(),
       type: isHoldMode ? 'yoga' : 'physio',
-      title: isHoldMode ? 'Warrior II' : 'Wall Slides',
+      title: exerciseTitle,
       durationMinutes: Math.ceil(duration / 60),
       exercisesCompleted: currentProgressRef.current,
       painScoreBefore: sessionPainBeforeRef.current,
@@ -292,14 +307,17 @@ export const LiveSessionScreen: React.FC = () => {
       accuracyScore,
       peakRom: peakRomRef.current ?? undefined,
       painInterrupted: wasPainInterrupted,
+      simulated: trackingMode === 'replay',
     }).catch(() => {});
 
-    // Queue in offline outbox for cloud clinic sync
-    queueReportForSync({
-      ...reportData,
-      patientId,
-      timestamp: Date.now(),
-    }).catch(() => {});
+    // Only real camera sessions with valid score sync to clinic; replay mode and unscored sessions never sync
+    if (trackingMode === 'camera' && accuracyScore !== null) {
+      queueReportForSync({
+        ...reportData,
+        patientId,
+        timestamp: Date.now(),
+      }).catch(() => {});
+    }
   };
   finishSessionRef.current = finishSession;
 
@@ -312,6 +330,12 @@ export const LiveSessionScreen: React.FC = () => {
       const now = frame.timestamp || Date.now();
 
       if (trackingMode === 'camera') {
+        if (!shouldEvaluateFrame(frame)) {
+          holdAccumulator.current.update(false, now);
+          setCurrentRom(null);
+          return;
+        }
+
         totalFramesRef.current += 1;
 
         let frameRom: number | null = null;
@@ -321,7 +345,7 @@ export const LiveSessionScreen: React.FC = () => {
         if (isHoldMode) {
           const evalResult = evaluateWarrior2(frame.keypoints, selectedSide);
           frameRom = evalResult.currentRom;
-          allChecksPass = evalResult.formChecks.every((c) => c.passed);
+          allChecksPass = isEvaluationComplete(evalResult, 'warrior2') && evalResult.formChecks.every((c) => c.passed);
           rawFeedback = arbitrateFeedback(evalResult.formChecks);
 
           if (allChecksPass) {
@@ -342,7 +366,7 @@ export const LiveSessionScreen: React.FC = () => {
         } else {
           const evalResult = evaluateWallSlide(frame.keypoints, selectedSide);
           frameRom = evalResult.currentRom;
-          allChecksPass = evalResult.formChecks.every((c) => c.passed);
+          allChecksPass = isEvaluationComplete(evalResult, 'wallslide') && evalResult.formChecks.every((c) => c.passed);
           rawFeedback = arbitrateFeedback(evalResult.formChecks);
 
           if (allChecksPass) {
@@ -397,6 +421,11 @@ export const LiveSessionScreen: React.FC = () => {
         }
       } else {
         // Replay Mode: driven by mock JSON
+        totalFramesRef.current += 1;
+        if (frame.feedback?.type === 'positive' || !frame.feedback?.joint) {
+          passedFramesRef.current += 1;
+        }
+
         if (frame.feedback) {
           setActiveFeedback(frame.feedback);
         }
@@ -747,15 +776,37 @@ export const LiveSessionScreen: React.FC = () => {
                 <span>Pain Check</span>
               </button>
 
-              <Button
-                variant="coral"
-                size="default"
-                className="flex-1 font-bold"
-                rightIcon={<SkipForward className="w-5 h-5" />}
-                onClick={handleNextRep}
-              >
-                {isHoldMode ? 'Skip Hold' : 'Next Rep'}
-              </Button>
+              {(() => {
+                const isDevOrJudge =
+                  Boolean(import.meta.env.DEV) ||
+                  (typeof window !== 'undefined' && window.location.search.includes('judge=1'));
+                const showSkip = trackingMode === 'replay' || isDevOrJudge;
+
+                if (showSkip) {
+                  return (
+                    <Button
+                      variant="coral"
+                      size="default"
+                      className="flex-1 font-bold"
+                      rightIcon={<SkipForward className="w-5 h-5" />}
+                      onClick={handleNextRep}
+                    >
+                      {isHoldMode ? 'Skip Hold' : 'Next Rep'}
+                    </Button>
+                  );
+                }
+
+                return (
+                  <Button
+                    variant="secondary"
+                    size="default"
+                    className="flex-1 font-bold bg-white/10 hover:bg-white/20 text-white border-white/20"
+                    onClick={() => finishSession(false)}
+                  >
+                    End session
+                  </Button>
+                );
+              })()}
             </div>
 
             {/* State Simulator (Development / Judge only) */}
@@ -833,6 +884,8 @@ export const LiveSessionScreen: React.FC = () => {
           repsCompleted={currentProgress}
           totalReps={sessionTargetUnits}
           peakRom={peakRom ?? undefined}
+          accuracyScore={completedReport?.accuracyScore}
+          simulated={trackingMode === 'replay'}
           painBefore={sessionPainBefore}
           painAfter={sessionPainAfter}
           painThreshold={painThreshold}
@@ -842,12 +895,15 @@ export const LiveSessionScreen: React.FC = () => {
             (painInterrupted ? 'Needs Attention' : 'Excellent')
           }
           encouragementSentence={
-            painInterrupted
+            completedReport?.accuracyScore === null
+              ? 'Not enough tracking data to score this session'
+              : painInterrupted
               ? 'Movement was safely paused to protect your joint. Rest in a neutral position.'
               : isHoldMode
               ? 'Your Warrior II alignment and grounded hip stability were held with exceptional calmness.'
               : 'Great shoulder elevation and scapular control during your wall slides.'
           }
+          isSynced={trackingMode === 'camera' && completedReport?.accuracyScore !== null}
           onDownloadPdf={() => {
             if (completedReport) {
               generateSessionPdf(completedReport);

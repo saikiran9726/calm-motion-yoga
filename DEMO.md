@@ -1,7 +1,8 @@
 # Calm Motion — 3-Minute Hackathon Demo Script for Judges
 
-**Live Link:** `https://calm-motion-yoga.vercel.app`  
-**Clinic Portal:** `https://calm-motion-yoga.vercel.app/clinic` (Default Demo Passcode: `CALM2026` or configured `CLINIC_ADMIN_PASSCODE` • Clinic Code: `CALM01`)
+**Live Link:** `<YOUR_LIVE_URL>`  
+**Clinic Portal:** `<YOUR_LIVE_URL>/clinic` (Clinic Code: `CALM01` • Passcode: the value set as `CLINIC_ADMIN_PASSCODE` for the demo deployment, provided to judges privately)  
+*Note for Public Demos:* If running a public demo, use a separate demo deployment with `DEMO_MODE=true`, fake data only, and a throwaway passcode (must not hold real patient data).
 
 ---
 
@@ -45,7 +46,7 @@
 ### 4. Clinic Supervision Portal (`/clinic`) & Live Polling (2:15 – 2:45)
 > *(Presenter opens the Clinic Portal on another tab or second device)*
 >
-> 1. Navigate to `/clinic` and enter the passcode (default demo passcode: `CALM2026`).
+> 1. Navigate to `/clinic` and enter the passcode: the value set as `CLINIC_ADMIN_PASSCODE` for the demo deployment (provided to judges privately).
 > 2. Show the patient cohort: Ananya, Arjun, Priya, Rahul.
 > 3. Notice the **Live Connected (5s Polling)** badge:
 >    - *"Within 5 to 10 seconds of a session ending on the phone, the clinic portal receives the summary numbers without duplicates (enforced by unique idempotent report IDs)."*

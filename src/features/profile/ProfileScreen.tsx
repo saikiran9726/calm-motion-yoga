@@ -18,6 +18,7 @@ import { Card, Button, BottomSheet } from '@/components/ui';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useAppStore } from '@/lib/store';
 import { db, getPatientIdentity, savePatientIdentity, clearPatientIdentity, PatientProfileRecord } from '@/lib/db';
+import { retryFailedReports } from '@/lib/outbox';
 
 export const ProfileScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -41,6 +42,18 @@ export const ProfileScreen: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
+  const [failedReports, setFailedReports] = useState<any[]>([]);
+  const [isRetryingSync, setIsRetryingSync] = useState(false);
+
+  const loadFailedReports = async () => {
+    try {
+      const failed = await db.outbox.where('status').equals('failed').toArray();
+      setFailedReports(failed);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     getPatientIdentity().then((ident) => {
       setPatientIdentity(ident);
@@ -51,7 +64,31 @@ export const ProfileScreen: React.FC = () => {
     if (userName) {
       setJoinNameInput(userName);
     }
+    loadFailedReports();
+    const interval = setInterval(loadFailedReports, 3000);
+    return () => clearInterval(interval);
   }, [userName]);
+
+  const handleRetryFailedReports = async () => {
+    setIsRetryingSync(true);
+    try {
+      await retryFailedReports();
+      await loadFailedReports();
+      addToast({
+        title: 'Retrying sync',
+        description: 'Re-queued failed reports for synchronization.',
+        type: 'info',
+      });
+    } catch (err: any) {
+      addToast({
+        title: 'Retry failed',
+        description: err.message || 'Could not retry sync',
+        type: 'warning',
+      });
+    } finally {
+      setIsRetryingSync(false);
+    }
+  };
 
   const handleJoinClinic = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -205,6 +242,36 @@ export const ProfileScreen: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Failed Sync Notification Banner */}
+      {failedReports.length > 0 && (
+        <div className="p-4 bg-coral-light/70 border border-coral-dark/30 rounded-card space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-coral-dark shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="text-body-medium font-bold text-coral-dark">
+                Sync failed: {failedReports[0]?.errorMessage || 'Invalid payload or server rejected data'}
+              </h4>
+              <p className="text-caption text-primary">
+                {failedReports.length === 1
+                  ? '1 session report could not be uploaded to your clinic backend.'
+                  : `${failedReports.length} session reports could not be uploaded to your clinic backend.`}
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="coral"
+            size="sm"
+            onClick={handleRetryFailedReports}
+            disabled={isRetryingSync}
+            className="w-full font-bold"
+          >
+            <RotateCcw className={`w-4 h-4 mr-2 ${isRetryingSync ? 'animate-spin' : ''}`} />
+            {isRetryingSync ? 'Retrying…' : 'Retry failed reports'}
+          </Button>
+        </div>
+      )}
 
       {/* 2. Current Active Programs Card */}
       <div className="space-y-2">

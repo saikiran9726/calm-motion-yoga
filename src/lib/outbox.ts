@@ -1,4 +1,5 @@
 import { db, getPatientIdentity } from "./db";
+import { buildSyncPayload } from "./reportPayload";
 
 let isSyncing = false;
 let listenersInitialized = false;
@@ -21,6 +22,25 @@ export async function resetStuckSyncingItems(): Promise<number> {
 }
 
 /**
+ * Reset all failed outbox items back to pending with 0 retries and trigger sync.
+ */
+export async function retryFailedReports(): Promise<void> {
+  const failedItems = await db.outbox.where("status").equals("failed").toArray();
+  for (const item of failedItems) {
+    if (item.id) {
+      await db.outbox.update(item.id, {
+        status: "pending",
+        retries: 0,
+        errorMessage: undefined,
+      });
+    }
+  }
+  if (typeof navigator !== "undefined" && navigator.onLine) {
+    await triggerOutboxSync();
+  }
+}
+
+/**
  * Queue a new movement telemetry report in Dexie outbox.
  * If patient has not joined a clinic, marks as local-only or skips cloud sync.
  */
@@ -36,13 +56,11 @@ export async function queueReportForSync(reportPayload: any): Promise<void> {
     reportPayload.reportId ||
     "rep-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 6);
 
-  reportPayload.reportId = reportId;
-  reportPayload.patientId = identity.patientId;
-  reportPayload.clinicCode = identity.clinicCode;
+  const cleanPayload = buildSyncPayload({ ...reportPayload, reportId }, identity);
 
   await db.outbox.add({
-    reportId,
-    payload: reportPayload,
+    reportId: cleanPayload.reportId,
+    payload: cleanPayload,
     createdAt: Date.now(),
     retries: 0,
     status: "pending",
@@ -92,12 +110,8 @@ export async function triggerOutboxSync(): Promise<{ synced: number; failed: num
       try {
         await db.outbox.update(item.id, { status: "syncing", lastAttemptAt: now });
 
-        // Ensure patient identity is bound to the payload
-        const payload = {
-          ...item.payload,
-          patientId: identity.patientId,
-          clinicCode: identity.clinicCode,
-        };
+        // Ensure clean whitelisted payload strictly matching SessionReportSchema
+        const payload = buildSyncPayload(item.payload, identity);
 
         const response = await fetch("/api/reports", {
           method: "POST",
@@ -111,6 +125,24 @@ export async function triggerOutboxSync(): Promise<{ synced: number; failed: num
         if (response.ok) {
           await db.outbox.delete(item.id);
           synced++;
+        } else if (response.status === 400) {
+          // Bad request (schema violation / validation error): retrying won't fix it
+          let serverMsg = "Report payload rejected by server validation.";
+          try {
+            const errData = await response.json();
+            if (errData?.error) {
+              serverMsg = errData.error;
+            } else if (errData?.details) {
+              serverMsg = typeof errData.details === "string" ? errData.details : JSON.stringify(errData.details);
+            }
+          } catch {
+            // fallback if response cannot be parsed as JSON
+          }
+          await db.outbox.update(item.id, {
+            status: "failed",
+            errorMessage: serverMsg,
+          });
+          failed++;
         } else if (response.status === 401 || response.status === 403) {
           // Authentication failure: stop retrying and mark failed
           await db.outbox.update(item.id, {

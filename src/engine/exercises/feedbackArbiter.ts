@@ -4,7 +4,7 @@ export interface FormCheck {
   priority: number; // Lower integer = higher priority (1 is highest)
   message: string;
   joint: string | null;
-  category: 'knee' | 'spine' | 'shoulder' | 'arm' | 'general';
+  category: 'knee' | 'spine' | 'shoulder' | 'arm' | 'general' | 'visibility';
 }
 
 export interface FeedbackOutput {

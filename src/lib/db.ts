@@ -10,9 +10,10 @@ export interface UserSession {
   exercisesCompleted: number;
   painScoreBefore?: number;
   painScoreAfter?: number;
-  accuracyScore?: number;
+  accuracyScore?: number | null;
   peakRom?: number;
   painInterrupted?: boolean;
+  simulated?: boolean;
 }
 
 export interface PainLog {
@@ -68,6 +69,9 @@ export class CalmMotionDB extends Dexie {
       outbox: "++id, reportId, status, createdAt",
       patientProfile: "id",
       cachedProgram: "patientId",
+    });
+    this.version(4).stores({
+      sessions: "++id, date, type, reportId, simulated",
     });
   }
 }

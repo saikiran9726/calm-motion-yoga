@@ -1,9 +1,10 @@
 # Calm Motion — Hackathon Submission Pack
 
-**Live Production URL:** [https://calm-motion-yoga.vercel.app](https://calm-motion-yoga.vercel.app)  
-**Clinic Supervision Portal:** [https://calm-motion-yoga.vercel.app/clinic](https://calm-motion-yoga.vercel.app/clinic)  
+**Live Production URL:** `<YOUR_LIVE_URL>`  
+**Clinic Supervision Portal:** `<YOUR_LIVE_URL>/clinic`  
 **Clinic Code:** `CALM01`  
-**Demo Clinic Admin Passcode:** `CALM2026` (or configured `CLINIC_ADMIN_PASSCODE`)  
+**Clinic Admin Passcode:** The value set as `CLINIC_ADMIN_PASSCODE` for the demo deployment (provided to judges privately)  
+*(For public demo deployments, configure `DEMO_MODE=true`, fake data only, and a throwaway passcode; never store real patient data).*
 
 ---
 
@@ -34,12 +35,12 @@ Calm Motion is a mobile-first wellness and rehabilitation application featuring 
 
 ## ⏱️ Test It in 60 Seconds (Judge Fast-Track)
 
-1. **Open the Live App:** Navigate to [https://calm-motion-yoga.vercel.app](https://calm-motion-yoga.vercel.app) on your phone or desktop.
+1. **Open the Live App:** Navigate to `<YOUR_LIVE_URL>` on your phone or desktop.
 2. **Launch Coaching:** Tap **"Start Session"** on the home screen.
 3. **Select Mode:** Choose **"Live Camera"** (for front-camera tracking via MediaPipe) or **"Recorded Replay"** (if testing without a camera). Tap **"I'm Ready"**.
 4. **Experience Live Feedback:** Observe the skeleton canvas, live ROM angle reading, and debounced voice cues. Tap **"Pain Check"** to test the safety halt.
 5. **Download Report:** Complete the session to view reps and peak ROM, then tap **"Download Session Report (PDF)"** to export your clinical summary.
-6. **Inspect Clinic Dashboard:** Open [https://calm-motion-yoga.vercel.app/clinic](https://calm-motion-yoga.vercel.app/clinic) in a new tab. Enter Clinic Code **`CALM01`** and Passcode **`CALM2026`** (default demo passcode) to observe live patient reports, adjust movement protocols, and view clinical notes.
+6. **Inspect Clinic Dashboard:** Open `<YOUR_LIVE_URL>/clinic` in a new tab. Enter Clinic Code **`CALM01`** and the configured `CLINIC_ADMIN_PASSCODE` (provided to judges privately) to observe live patient reports, adjust movement protocols, and view clinical notes.
 
 ---
 

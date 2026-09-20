@@ -40,6 +40,7 @@ interface SessionReport {
   painAfter: number;
   painInterrupted: boolean;
   timestamp: number;
+  painThreshold?: number;
 }
 
 interface ClinicalNote {
@@ -584,7 +585,7 @@ export const ClinicDashboardScreen: React.FC = () => {
                         )}
                       </div>
                       <span className="text-metadata text-secondary mt-0.5 block">
-                        {r.date} • {r.repsCompleted}/{r.targetReps} reps • Peak ROM: {r.peakRom}° • Pain {r.painBefore}→{r.painAfter}
+                        {r.date} • {r.repsCompleted}/{r.targetReps} reps • Peak ROM: {r.peakRom}° • Pain {r.painBefore}→{r.painAfter}{r.painThreshold !== undefined ? ` (Limit: ≤${r.painThreshold})` : ""}
                       </span>
                     </div>
 

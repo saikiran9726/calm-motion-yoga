@@ -56,8 +56,25 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2,woff,png,ico,json,wasm,task}'],
+        globIgnores: [
+          '**/mediapipe/wasm/*nosimd*',
+          '**/mediapipe/wasm/*module*',
+        ],
         maximumFileSizeToCacheInBytes: 25 * 1024 * 1024,
         navigateFallbackDenylist: [/^\/api\//],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/mediapipe/wasm/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'mediapipe-wasm-fallback',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 30 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
       },
     }),
   ],

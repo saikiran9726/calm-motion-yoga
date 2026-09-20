@@ -46,6 +46,7 @@ export const SessionReportSchema = z
     painInterrupted: z.boolean().optional().default(false),
     timestamp: z.number().int().optional(),
     mode: z.enum(["hold", "reps"]).optional(),
+    painThreshold: z.number().int().min(0).max(10).optional(),
   })
   .strict();
 

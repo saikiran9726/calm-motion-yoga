@@ -1,5 +1,8 @@
 # Calm Motion — On-Device Live Yoga & Physiotherapy Motion Coach
 
+> [!IMPORTANT]
+> **Set your deployed URL here before submitting:** `<YOUR_LIVE_URL>`
+
 > **"Intelligent movement guidance that lives on your phone, never in the cloud."**
 
 Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application featuring a real-time on-device AI motion coach. It observes movement through your smartphone's front camera and provides soothing, real-time guidance (e.g. *"Lower your right shoulder slightly."*), counts repetitions with range-of-motion tracking, and detects compensations. Camera video is processed on the device and is never uploaded. Only summary metrics (reps or hold time, peak ROM, pain scores, form quality) are sent to the clinic when the user has joined a clinic and is online. The app works offline and syncs when back online.
@@ -12,6 +15,7 @@ Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application fe
    - Analyzes 33 body keypoints on-device in real-time.
    - High-DPR canvas skeleton overlay with gentle pulsing correction highlights.
    - Debounced coaching feedback: one instruction at a time, displayed for at least 1.5 seconds with text and icons (never color alone).
+   - Performance benchmarks: *Measured on <device>: <fps> FPS, <ms> ms, <GPU|CPU>*.
 
 2. **Multilingual Voice Coaching & Input**:
    - Text-to-Speech coaching in English, Hindi (हिन्दी), and Telugu (తెలుగు).
@@ -25,13 +29,16 @@ Calm Motion is a premium, mobile-first Yoga and Physiotherapy web application fe
 
 4. **Privacy-First & Offline Resilience**:
    - Progressive Web App (PWA) with full offline precaching of models, WASM binaries, fonts, and inline SVG illustrations.
+   - Optimized precache footprint: ~19.1 MB initial precache (model + SIMD WASM); fallback non-SIMD variants are cached on first use if needed. Recommended first install over Wi-Fi.
    - Offline exercise support: Complete workouts in Airplane Mode. All video stays in volatile memory and is never uploaded.
    - Resilient data queue: Summary metrics store in local Dexie IndexedDB and sync to the clinic when back online.
 
 5. **Therapist Portal & Clinic Sync**:
-   - Dual-role switch: Patient mode and Clinical Therapist mode (secured with clinic passcode, default `CALM2026` in demo mode if unset).
+   - Dual-role switch: Patient mode and Clinical Therapist mode.
+   - Passcode: the value set as `CLINIC_ADMIN_PASSCODE` for the demo deployment (provided to judges privately).
+   - *Public Demo Note:* If deploying a public demo instance, configure a separate demo deployment with `DEMO_MODE=true`, fake data only, and a throwaway passcode, which must never hold real patient data.
    - Real-time clinical view of patient adherence, pain trajectories, and range of motion.
-   - Authenticated REST API (`/api/*`) with JWT bearer authentication, rate limiting, and optional MongoDB Atlas persistence (falling back to in-memory store in dev).
+   - Authenticated REST API (`/api/*`) with JWT bearer authentication, rate limiting, and MongoDB Atlas persistence (falling back to in-memory store in local dev).
 
 ---
 
@@ -111,8 +118,10 @@ During any active exercise session, **tap the "LIVE COACH" emerald badge** at th
 
 ## ☁️ Step-by-Step Deployment Guide
 
+The application is architected to run on **Vercel Serverless Functions** (`/api/*`) for backend endpoints with a static Vite PWA frontend (`/dist`).
+
 ### Option 1: Vercel + GitHub (Recommended)
-1. **Push to a new GitHub repository:**
+1. **Push to your GitHub repository:**
    ```bash
    git remote add origin https://github.com/<your-username>/calm-motion-yoga.git
    git branch -M main
@@ -123,10 +132,13 @@ During any active exercise session, **tap the "LIVE COACH" emerald badge** at th
    - Click **"Add New..."** → **"Project"**.
    - Select your repository (`calm-motion-yoga`) and click **"Import"**.
    - Framework Preset will automatically detect **Vite**.
-   - Expand **"Environment Variables"** and add:
-     - `CLINIC_ADMIN_PASSCODE` = `<your-secure-clinic-passcode>`
-     - `JWT_SECRET` = `<min-32-char-random-secret>`
-     - `MONGODB_URI` = `<your-mongodb-atlas-connection-string>`
+   - Expand **"Environment Variables"** and configure the required production secrets:
+     - `MONGODB_URI` = `<your-mongodb-atlas-connection-string>` *(Required in production)*
+     - `JWT_SECRET` = `<min-32-char-random-secret>` *(Required; placeholders starting with "change-me" are strictly rejected)*
+     - `CLINIC_ADMIN_PASSCODE` = `<min-8-char-secure-clinic-passcode>` *(Required; placeholders like "CALM2026" or "change-me" are rejected in production)*
+   - **Production Security & Auto-Bootstrap:**
+     - In production (`NODE_ENV=production` or `VERCEL_ENV=production`), the backend validates all three variables on boot. Any missing or placeholder variable triggers an immediate HTTP 503 ("Server not configured").
+     - The default supervising clinic (`CALM01`) is **automatically bootstrapped** into your MongoDB `clinics` collection on first login/access using your configured `CLINIC_ADMIN_PASSCODE`. No manual database seeding is needed.
    - Click **"Deploy"**. Future git pushes will automatically redeploy!
 
 ### Option 2: Drag & Drop Fallback (Netlify Drop)

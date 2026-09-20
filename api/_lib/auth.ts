@@ -3,13 +3,17 @@ import { dbService, PatientRecord } from "./db";
 import { hashToken } from "./crypto";
 
 function getJwtSecret(): Uint8Array {
+  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
   const secret =
     process.env.JWT_SECRET ||
-    (process.env.NODE_ENV !== "production"
-      ? "dev-secret-calm-motion-yoga-32-chars-long-local"
-      : "");
+    (!isProd ? "dev-secret-calm-motion-yoga-32-chars-long-local" : "");
+
   if (!secret || secret.length < 32) {
     throw new Error("JWT_SECRET must be at least 32 characters long");
+  }
+  if (isProd && (secret.toLowerCase().startsWith("change-me") || secret === "change-me-in-production")) {
+    console.error("FATAL: JWT_SECRET must be changed in production. Current value is placeholder.");
+    throw new Error("JWT_SECRET must be changed in production. Current value is placeholder.");
   }
   return new TextEncoder().encode(secret);
 }

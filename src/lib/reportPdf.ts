@@ -11,12 +11,14 @@ export interface SessionReportData {
   targetReps: number;
   mode?: 'hold' | 'reps';
   peakRom?: number;
+  accuracyScore?: number | null;
   formQuality: 'Excellent' | 'Good' | 'Needs Attention';
   painBefore: number;
   painAfter: number;
   painThreshold?: number;
   painInterrupted?: boolean;
   notes?: string;
+  simulated?: boolean;
 }
 
 export function generateSessionPdf(data: SessionReportData) {
@@ -44,7 +46,12 @@ export function generateSessionPdf(data: SessionReportData) {
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('On-Device Live Motion Coach • Clinical Session Record', 16, 23);
+  if (data.simulated) {
+    doc.setTextColor(233, 169, 154); // Coral
+    doc.text('Simulated Demo Session • Recorded Replay (Not Real Patient Data)', 16, 23);
+  } else {
+    doc.text('On-Device Live Motion Coach • Clinical Session Record', 16, 23);
+  }
 
   // Clinic Code Badge
   doc.setFillColor(...sage);
@@ -52,9 +59,9 @@ export function generateSessionPdf(data: SessionReportData) {
   doc.setTextColor(...forest);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text('CLINIC CODE', 152, 16);
+  doc.text(data.simulated ? 'DEMO MODE' : 'CLINIC CODE', 152, 16);
   doc.setFontSize(12);
-  doc.text(data.clinicCode, 152, 23);
+  doc.text(data.simulated ? 'SIMULATED' : data.clinicCode, 152, 23);
 
   // 2. Patient & Session Metadata Card
   doc.setFillColor(247, 248, 245); // Off white
@@ -90,7 +97,11 @@ export function generateSessionPdf(data: SessionReportData) {
       sub: isHold ? `${Math.min(100, Math.round((data.repsCompleted / (data.targetReps || 1)) * 100))}% target hold` : `${Math.min(100, Math.round((data.repsCompleted / (data.targetReps || 1)) * 100))}% completed`
     },
     { label: 'PEAK ROM', val: data.peakRom && data.peakRom > 0 ? `${data.peakRom}°` : 'n/a', sub: 'Best angle reached' },
-    { label: 'FORM QUALITY', val: data.formQuality, sub: 'Alignment consistency' },
+    {
+      label: 'FORM QUALITY',
+      val: data.accuracyScore === null ? 'N/A' : data.formQuality,
+      sub: data.accuracyScore === null ? 'Insufficient frames' : 'Alignment consistency'
+    },
     { label: 'PAIN SHIFT', val: `${data.painBefore} -> ${data.painAfter}`, sub: data.painAfter <= data.painBefore ? 'Stable / Eased' : 'Increased' },
   ];
 
