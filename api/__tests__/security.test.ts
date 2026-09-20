@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import clinicAuthHandler from "../clinic/auth";
-import clinicPatientsHandler from "../clinic/patients";
-import clinicPatientHandler from "../clinic/patient";
-import clinicNotesHandler from "../clinic/notes";
-import clinicProgramHandler from "../clinic/program";
-import clinicSeedHandler from "../clinic/seed";
-import reportsHandler from "../reports";
-import patientJoinHandler from "../patient/join";
-import patientDeleteDataHandler from "../patient/delete-data";
-import patientProgramHandler from "../patient/program";
-import { seedMemoryStore } from "../_lib/db";
+import clinicAuthHandler from "../clinic/auth.js";
+import clinicPatientsHandler from "../clinic/patients.js";
+import clinicPatientHandler from "../clinic/patient.js";
+import clinicNotesHandler from "../clinic/notes.js";
+import clinicProgramHandler from "../clinic/program.js";
+import clinicSeedHandler from "../clinic/seed.js";
+import reportsHandler from "../reports.js";
+import patientJoinHandler from "../patient/join.js";
+import patientDeleteDataHandler from "../patient/delete-data.js";
+import patientProgramHandler from "../patient/program.js";
+import { seedMemoryStore } from "../_lib/db.js";
 
 function createMockReqRes(options: {
   method?: string;

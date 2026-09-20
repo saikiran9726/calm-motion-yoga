@@ -1,8 +1,8 @@
-import { PatientJoinSchema } from "../_lib/validation";
-import { dbService } from "../_lib/db";
-import { generatePatientId, generatePatientToken, hashToken } from "../_lib/crypto";
-import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
-import { checkJoinRateLimit } from "../_lib/rateLimit";
+import { PatientJoinSchema } from "../_lib/validation.js";
+import { dbService } from "../_lib/db.js";
+import { generatePatientId, generatePatientToken, hashToken } from "../_lib/crypto.js";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http.js";
+import { checkJoinRateLimit } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
   if (!checkServerConfig(res)) return;

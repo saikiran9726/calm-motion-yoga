@@ -4,7 +4,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
-import { devApiMiddleware } from './api/_lib/devMiddleware';
+import { devApiMiddleware } from './api/_lib/devMiddleware.js';
 
 function localApiPlugin() {
   return {

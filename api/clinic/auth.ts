@@ -1,8 +1,8 @@
-import { ClinicAuthSchema } from "../_lib/validation";
-import { dbService } from "../_lib/db";
-import { signClinicToken } from "../_lib/auth";
-import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
-import { checkLoginRateLimit, recordLoginFailure, recordLoginSuccess } from "../_lib/rateLimit";
+import { ClinicAuthSchema } from "../_lib/validation.js";
+import { dbService } from "../_lib/db.js";
+import { signClinicToken } from "../_lib/auth.js";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http.js";
+import { checkLoginRateLimit, recordLoginFailure, recordLoginSuccess } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
   if (!checkServerConfig(res)) return;

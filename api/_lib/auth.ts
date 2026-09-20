@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
-import { dbService, PatientRecord } from "./db";
-import { hashToken } from "./crypto";
+import { dbService, PatientRecord } from "./db.js";
+import { hashToken } from "./crypto.js";
 
 function getJwtSecret(): Uint8Array {
   const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";

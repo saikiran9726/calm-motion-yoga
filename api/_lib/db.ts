@@ -1,5 +1,5 @@
 import { MongoClient, Db } from "mongodb";
-import { hashPasscode, verifyPasscode, hashToken, generatePatientToken } from "./crypto";
+import { hashPasscode, verifyPasscode, hashToken, generatePatientToken } from "./crypto.js";
 
 export interface ClinicRecord {
   clinicCode: string;

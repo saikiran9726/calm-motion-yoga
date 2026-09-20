@@ -1,7 +1,7 @@
-import { SessionReportSchema } from "./_lib/validation";
-import { dbService } from "./_lib/db";
-import { requireClinic, requirePatient } from "./_lib/auth";
-import { handleCors, ensureMethod, checkServerConfig } from "./_lib/http";
+import { SessionReportSchema } from "./_lib/validation.js";
+import { dbService } from "./_lib/db.js";
+import { requireClinic, requirePatient } from "./_lib/auth.js";
+import { handleCors, ensureMethod, checkServerConfig } from "./_lib/http.js";
 
 export default async function handler(req: any, res: any) {
   if (!checkServerConfig(res)) return;

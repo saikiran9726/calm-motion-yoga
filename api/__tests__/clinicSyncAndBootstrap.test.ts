@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { buildSyncPayload } from "../../src/lib/reportPayload";
-import { SessionReportSchema } from "../_lib/validation";
-import clinicAuthHandler from "../clinic/auth";
-import patientJoinHandler from "../patient/join";
-import reportsHandler from "../reports";
-import { __setMongoForTests } from "../_lib/db";
-import { resetRateLimitsForTests } from "../_lib/rateLimit";
+import { buildSyncPayload } from "../../src/lib/reportPayload.js";
+import { SessionReportSchema } from "../_lib/validation.js";
+import clinicAuthHandler from "../clinic/auth.js";
+import patientJoinHandler from "../patient/join.js";
+import reportsHandler from "../reports.js";
+import { __setMongoForTests } from "../_lib/db.js";
+import { resetRateLimitsForTests } from "../_lib/rateLimit.js";
 
 function createMockReqRes(options: {
   method?: string;

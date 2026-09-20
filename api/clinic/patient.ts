@@ -1,7 +1,7 @@
-import { dbService } from "../_lib/db";
-import { requireClinic } from "../_lib/auth";
-import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
-import { PatientIdQuerySchema } from "../_lib/validation";
+import { dbService } from "../_lib/db.js";
+import { requireClinic } from "../_lib/auth.js";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http.js";
+import { PatientIdQuerySchema } from "../_lib/validation.js";
 
 export default async function handler(req: any, res: any) {
   if (!checkServerConfig(res)) return;

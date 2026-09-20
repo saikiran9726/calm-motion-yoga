@@ -1,6 +1,6 @@
-import { dbService } from "../_lib/db";
-import { requirePatient } from "../_lib/auth";
-import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http";
+import { dbService } from "../_lib/db.js";
+import { requirePatient } from "../_lib/auth.js";
+import { handleCors, ensureMethod, checkServerConfig } from "../_lib/http.js";
 
 export default async function handler(req: any, res: any) {
   if (!checkServerConfig(res)) return;
